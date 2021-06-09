@@ -6,9 +6,9 @@ featured: true
 draft: true 
 toc: false 
 # menu: main
-featureImage: "/images/path/file.jpg" 
-thumbnail: "/images/path/thumbnail.png" 
-shareImage: "/images/path/share.png" 
+#featureImage: "/images/path/file.jpg" 
+#thumbnail: "/images/path/thumbnail.png" 
+#shareImage: "/images/path/share.png" 
 codeMaxLines: 10 
 codeLineNumbers: false 
 figurePositionShow: true 
