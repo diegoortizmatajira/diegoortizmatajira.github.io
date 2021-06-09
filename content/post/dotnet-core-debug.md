@@ -1,10 +1,24 @@
 ---
-title: "Dotnet Core Debug"
+title: "Debugging a .Net Core application running in a Docker container, using VS Code"
 date: 2017-09-02T15:51:08-05:00
-draft: false
+description: "Describes how to enable debugging a .Net Core from VsCode while running on docker" 
+featured: true 
+draft: false 
+toc: true 
+# menu: main
+#featureImage: "/images/path/file.jpg" 
+#thumbnail: "/images/path/thumbnail.png" 
+#shareImage: "/images/path/share.png" 
+codeMaxLines: 10 
+codeLineNumbers: false 
+figurePositionShow: true 
+categories:
+- Development
+tags:
+- Docker
+- CSharp
+# comment: false # Disable comment if false.
 ---
-
-# Debugging a .Net Core application running in a Docker container, using VS Code
 
 
 With today’s technologies, it is very easy to develop and run multi-platform applications since we have code editors such as Visual Studio Code, Microsoft .Net Core (2.0 in its most recent version) and Docker containers.
