@@ -1,0 +1,204 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Debugging a .Net Core application running in a Docker container, using VS Code - Diego Ortiz</title><meta name=Description content="Describes how to enable debugging a .Net Core from VsCode while running on docker"><meta property="og:title" content="Debugging a .Net Core application running in a Docker container, using VS Code"><meta property="og:description" content="Describes how to enable debugging a .Net Core from VsCode while running on docker"><meta property="og:type" content="article"><meta property="og:url" content="https://diego-ortiz.me/posts/dotnet-core-debug/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2017-09-02T15:51:08-05:00"><meta property="article:modified_time" content="2017-09-02T15:51:08-05:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Debugging a .Net Core application running in a Docker container, using VS Code"><meta name=twitter:description content="Describes how to enable debugging a .Net Core from VsCode while running on docker"><meta name=application-name content="Diego Ortiz"><meta name=apple-mobile-web-app-title content="Diego Ortiz"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://diego-ortiz.me/posts/dotnet-core-debug/><link rel=stylesheet href=/lib/normalize/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/lib/fontawesome-free/all.min.css><link rel=stylesheet href=/lib/animate/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Debugging a .Net Core application running in a Docker container, using VS Code","inLanguage":"en-us","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/diego-ortiz.me\/posts\/dotnet-core-debug\/"},"genre":"posts","keywords":"Docker, CSharp","wordcount":1666,"url":"https:\/\/diego-ortiz.me\/posts\/dotnet-core-debug\/","datePublished":"2017-09-02T15:51:08-05:00","dateModified":"2017-09-02T15:51:08-05:00","publisher":{"@type":"Organization","name":"Diego Ortiz"},"author":{"@type":"Person","name":"Diego Ortiz"},"description":"Describes how to enable debugging a .Net Core from VsCode while running on docker"}</script></head><body header-desktop header-mobile><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':''==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:''==='dark')&&document.body.setAttribute('theme','dark')</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="Diego Ortiz">Diego Ortiz</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/about>About </a><a class=menu-item href=/posts/>Posts </a><a class=menu-item href=/tags/>Tags </a><a class=menu-item href=/categories/>Categories </a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="Diego Ortiz">Diego Ortiz</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/about title>About</a><a class=menu-item href=/posts/ title>Posts</a><a class=menu-item href=/tags/ title>Tags</a><a class=menu-item href=/categories/ title>Categories</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Debugging a .Net Core application running in a Docker container, using VS Code</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/ title=Author rel=" author" class=author><i class="fas fa-user-circle fa-fw"></i>Diego Ortiz</a></span>&nbsp;<span class=post-category>included in <a href=/categories/development/><i class="far fa-folder fa-fw"></i>Development</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2017-09-02>2017-09-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;1666 words&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;8 minutes&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#pre-requirements>Pre requirements</a></li><li><a href=#procedure>Procedure</a><ul><li><a href=#step-1-creating-the-net-core-project>Step 1: Creating the .Net Core Project</a></li><li><a href=#step-2-add-docker-support>Step 2: Add Docker Support</a></li><li><a href=#step-3-open-the-project-in-visual-studio-code>Step 3: Open the project in Visual Studio Code</a></li><li><a href=#step-4-adjust-configuration-files>Step 4: Adjust Configuration Files</a></li><li><a href=#step-5-compile>Step 5: Compile</a></li><li><a href=#step-6-debug-the-application>Step 6: Debug the application</a></li></ul></li><li><a href=#conclusion>Conclusion</a></li></ul></nav></div></div><div class=content id=content><p>With today’s technologies, it is very easy to develop and run multi-platform applications since we have code editors such as Visual Studio Code, Microsoft .Net Core (2.0 in its most recent version) and Docker containers.</p><p>On the Windows platform, Visual Studio 2017 provides the tools to develop .Net Core applications and support for debugging directly in a Docker container.</p><p>But in other platforms (Linux, MacOS) is not so clear the process to be able to perform this type of debugging processes; this is the reason to write this article.</p><p>The purpose of this article is to show how to use Visual Studio Code (VS Code) to configure a .Net Core project running on a Docker container and to be able to debug it.</p><p>The source code of the project created for this article is published in GitHub:</p><pre><code>https://github.com/diegoortizmatajira/DockerDebug
+</code></pre><h2 id=pre-requirements>Pre requirements</h2><ul><li><a href=http://code.visualstudio.com/ target=_blank rel="noopener noreffer">Visual Studio Code</a>: Code Editor</li><li><a href=https://www.microsoft.com/net/core target=_blank rel="noopener noreffer">Microsoft .Net Core SDK</a> (2.0 or even 1.1)</li><li><a href=https://www.docker.com/get-docker target=_blank rel="noopener noreffer">Docker</a>: Platform for application containers.</li><li><a href=http://nodejs.org/ target=_blank rel="noopener noreffer">Node JS</a>: Required to install NPM packages (such as yeoman and its templates)</li><li><a href=http://yeoman.io/ target=_blank rel="noopener noreffer">Yeoman</a>: Tool for generating templates</li><li><a href=https://github.com/Microsoft/generator-docker#readme target=_blank rel="noopener noreffer">Yeoman docker template</a>: to generate files needed to use Docker with the project</li></ul><p><strong>Note</strong>: NodeJS, Yeoman, and docker template for Yeoman are not strictly necessary, but allow you to quickly generate additional files needed to enable Docker.</p><h2 id=procedure>Procedure</h2><p><strong>Note</strong>: The steps shown below were done on Linux platform, but the procedure must be the same for other platforms.</p><h3 id=step-1-creating-the-net-core-project>Step 1: Creating the .Net Core Project</h3><p>Creating the .Net Core project from the terminal using the Command Line Interface (CLI) of the SDK:</p><pre><code>mkdir DockerDebug
+cd DockerDebug
+dotnet new console
+</code></pre><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug01-1.png?resize=648%2C481" data-srcset="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug01-1.png?resize=648%2C481, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug01-1.png?resize=648%2C481 1.5x, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug01-1.png?resize=648%2C481 2x" data-sizes=auto alt="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug01-1.png?resize=648%2C481" title="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug01-1.png?resize=648%2C481"></p><h3 id=step-2-add-docker-support>Step 2: Add Docker Support</h3><p>In this step the Yeoman application will be used to generate the necessary files to enable the generation of the containers for debugging and / or final for deployment in other environments.</p><p>In the same folder:</p><pre><code>yo docker
+</code></pre><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug02-1.png?resize=648%2C478" data-srcset="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug02-1.png?resize=648%2C478, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug02-1.png?resize=648%2C478 1.5x, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug02-1.png?resize=648%2C478 2x" data-sizes=auto alt="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug02-1.png?resize=648%2C478" title="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug02-1.png?resize=648%2C478"></p><p>You must select the “.NET Core” option and proceed to answer the following questions:</p><ul><li><strong>Language</strong>: .NET Core</li><li><strong>Version of .NET Core</strong>: rtm (Note: yeoman generator was originally created for version 1.0)</li><li><strong>The project uses a web server</strong>: No, in this case it is a console project.</li><li><strong>Image Name</strong>: This is the name of the image of the docker container to be generated, it can be modified if desired.</li><li><strong>Service name</strong>: This is the name of the service that the container will play in the application when it is launched using docker-compose, it can be modified if desired.</li><li><strong>Name of the Compose project</strong>: This is the name of the docker-compose file, it can be modified if desired.</li></ul><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug03-1.png?resize=648%2C569" data-srcset="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug03-1.png?resize=648%2C569, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug03-1.png?resize=648%2C569 1.5x, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug03-1.png?resize=648%2C569 2x" data-sizes=auto alt="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug03-1.png?resize=648%2C569" title="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug03-1.png?resize=648%2C569"></p><p><strong>Note</strong>: An error message is generated indicating that the file “project.json” can not be found. Please omit this message, since the project.json files from .Net Core 1.1. were replaced by the “.csproj” project file.</p><h3 id=step-3-open-the-project-in-visual-studio-code>Step 3: Open the project in Visual Studio Code</h3><p>There are two options:</p><p>Open the Visual Studio Code and find the folder where the project was created<br>From the same terminal run the command:</p><p>Code .</p><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug04-1.png?resize=648%2C441" data-srcset="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug04-1.png?resize=648%2C441, https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug04-1.png?resize=648%2C441 1.5x, https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug04-1.png?resize=648%2C441 2x" data-sizes=auto alt="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug04-1.png?resize=648%2C441" title="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug04-1.png?resize=648%2C441"></p><p>As you can see, thanks to yeoman and its docker generator, the project has the following files:</p><ul><li><strong>.vscode / launch.json</strong>: contains the settings for launching the application from the debugger</li><li><strong>.vscode / tasks.json</strong>: contains the configuration of the commands required to prepare the container and launch it for debugging.</li><li><strong>docker.compose.debug.yml</strong>: contains the settings for orchestrating and debugging the application and other services required by docker-compose.</li><li><strong>docker.compose.yml</strong>: contains the configuration to orchestrate the application and other services required by docker-compose in an environment other than development.</li><li><strong>Dockerfile</strong>: contains the process definition to build the docker image in an environment other than development.</li><li><strong>Dockerfile.debug</strong>: contains the process definition to build the docker image enabled for debugging.</li><li><strong>dockerTask.ps1</strong>: contains the script with the commands to launch the container in debug mode using PowerShell (Windows)</li><li><strong>dockerTask.sh</strong>: contains the script with the commands to launch the container in debug mode using Shell commands (Linux and MacOs)</li></ul><h3 id=step-4-adjust-configuration-files>Step 4: Adjust Configuration Files</h3><p>Given that the yeoman docker generator was originally created for .Net Core 1.0, you need to make adjustments to several files to work with .Net Core 1.1 and / or .Net Core 2.0 versions.</p><h4 id=update-csproj-project-file>Update .csproj project file</h4><p>Add the following lines to the file inside the <code>&lt;Project> &lt;/ Project></code></p><pre><code>&lt;ItemGroup&gt;
+  &lt;None Update=&quot;Dockerfile&quot;&gt;
+    &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
+  &lt;/None&gt;
+  &lt;None Update=&quot;Dockerfile.Debug&quot;&gt;
+    &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
+  &lt;/None&gt;
+  &lt;None Update=&quot;docker-compose.yml&quot;&gt;
+    &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
+  &lt;/None&gt;
+  &lt;None Update=&quot;docker-compose.debug.yml&quot;&gt;
+    &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
+  &lt;/None&gt;
+&lt;/ItemGroup&gt;
+</code></pre><p>These lines tell the project to include docker support files when it generates publication files.</p><h4 id=update-dockerfile>Update dockerfile</h4><p>In the file dockerfile you must adjust the base image of docker to use according to the version of .Net Core (in this case 2.0).</p><p>Original file:</p><pre><code>FROM **microsoft/dotnet:1.0.0-core**
+WORKDIR /app
+ENTRYPOINT \[&quot;dotnet&quot;, &quot;DockerDebug.dll&quot;\]
+COPY . /app
+</code></pre><p>Adjusted file:</p><pre><code>FROM **microsoft/dotnet:2.0.0-runtime**
+WORKDIR /app
+ENTRYPOINT \[&quot;dotnet&quot;, &quot;DockerDebug.dll&quot;\]
+COPY . /app
+</code></pre><h4 id=update-dockerfiledebug>Update dockerfile.debug</h4><p>in the dockerfile.debug file you must adjust the docker base image and the commands required to enable debugging:</p><p>Original file:</p><pre><code>FROM **microsoft/dotnet:1.0.0-preview2-sdk**
+ENV NUGET\_XMLDOC\_MODE skip
+ARG CLRDBG\_VERSION=VS2015U2
+WORKDIR /clrdbg
+**RUN curl -SL https://raw.githubusercontent.com/Microsoft/MIEngine/getclrdbg-release/scripts/GetClrDbg.sh --output GetClrDbg.sh \\**
+ **&amp;&amp; chmod 700 GetClrDbg.sh \\**
+ **&amp;&amp; ./GetClrDbg.sh $CLRDBG\_VERSION \\**
+ **&amp;&amp; rm GetClrDbg.sh**
+WORKDIR /app
+ENTRYPOINT \[&quot;/bin/bash&quot;, &quot;-c&quot;, &quot;if \[ -z \\&quot;$REMOTE\_DEBUGGING\\&quot; \]; then dotnet DockerDebug.dll; else sleep infinity; fi&quot;\]
+COPY . /app
+</code></pre><p>Adjusted file</p><pre><code>FROM **microsoft/dotnet:2.0.0-sdk**
+ENV NUGET\_XMLDOC\_MODE skip
+ARG CLRDBG\_VERSION=VS2015U2
+WORKDIR /clrdbg
+**RUN apt-get update \\**
+ **&amp;&amp; apt-get install -y --no-install-recommends \\**
+ **unzip \\**
+ **&amp;&amp; rm -rf /var/lib/apt/lists/\* \\**
+ **&amp;&amp; curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg**
+WORKDIR /app
+ENTRYPOINT \[&quot;/bin/bash&quot;, &quot;-c&quot;, &quot;if \[ -z \\&quot;$REMOTE\_DEBUGGING\\&quot; \]; then dotnet DockerDebug.dll; else sleep infinity; fi&quot;\]
+COPY . /app
+</code></pre><p>This is due to adjustments made to the Microsoft utilities that allow debugging.</p><h4 id=update-dockertaskps1>Update dockerTask.ps1</h4><p>On line 45 change:</p><pre><code>$framework = &quot;**netcoreapp1.0**&quot;
+</code></pre><p>with <em>netcoreapp1.1</em> o <em>netcoreapp2.0</em> as appropriate:</p><pre><code>$framework = &quot;**netcoreapp2.0**&quot;
+</code></pre><p>On line 110 change:</p><pre><code>docker exec -i $containerId **/clrdbg/clrdbg --interpreter=mi**
+</code></pre><p>with</p><pre><code>docker exec -i $containerId **/vsdbg/vsdbg --interpreter=vscode** 
+</code></pre><h4 id=update-dockertasksh>Update dockerTask.sh</h4><p>On line 6 change:</p><pre><code>framework=&quot;**netcoreapp1.0**&quot;
+</code></pre><p>with <em>netcoreapp1.1</em> o <em>netcoreapp2.0</em> as appropiate:</p><pre><code>framework=&quot;**netcoreapp2.0**&quot;
+</code></pre><p>On line 80 change:</p><pre><code>docker exec -i $containerId **/clrdbg/clrdbg --interpreter=mi**
+</code></pre><p>with:</p><pre><code>docker exec -i $containerId **/vsdbg/vsdbg --interpreter=vscode**
+</code></pre><h4 id=update-vscodelaunchjson>Update .vscode/launch.json</h4><p>On section “<em>pipeTransport</em>” include the following highlighted line:</p><pre><code> &quot;pipeTransport&quot;: {
+   **&quot;debuggerPath&quot;: &quot;/vsdbg/vsdbg&quot;,**
+   &quot;pipeProgram&quot;: &quot;/bin/bash&quot;,
+   &quot;pipeCwd&quot;: &quot;${workspaceRoot}&quot;,
+   &quot;pipeArgs&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh startDebugging&quot; \],
+   &quot;windows&quot;: {
+     &quot;pipeProgram&quot;: &quot;${env.windir}\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe&quot;,
+     &quot;pipeCwd&quot;: &quot;${workspaceRoot}&quot;,
+     &quot;pipeArgs&quot;: \[ &quot;.\\\\dockerTask.ps1&quot;, &quot;-StartDebugging&quot; \]
+  }
+</code></pre><h4 id=update-the-tasksjson-file>Update the tasks.json file</h4><p>By default the docker generator for Yeoman, only generates the configuration for Windows and for OSX, leaving out the Linux configuration. To solve this, just copy the “osx” section and name it “linux”</p><pre><code>{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    &quot;version&quot;: &quot;0.1.0&quot;,
+    &quot;windows&quot;: {
+        &quot;command&quot;: &quot;powershell&quot;,
+        &quot;options&quot;: {
+            &quot;cwd&quot;: &quot;${workspaceRoot}&quot;
+        },
+        &quot;tasks&quot;: \[
+            {
+                &quot;taskName&quot;: &quot;build&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[&quot;-ExecutionPolicy&quot;, &quot;RemoteSigned&quot;, &quot;.\\\\dockerTask.ps1&quot;, &quot;-Build&quot;, &quot;-Environment&quot;, &quot;debug&quot; \],
+                &quot;isBuildCommand&quot;: true,
+                &quot;showOutput&quot;: &quot;always&quot;,
+                &quot;echoCommand&quot;: true
+            },
+            {
+                &quot;taskName&quot;: &quot;compose&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[&quot;-ExecutionPolicy&quot;, &quot;RemoteSigned&quot;, &quot;.\\\\dockerTask.ps1&quot;, &quot;-Compose&quot;, &quot;-Environment&quot;, &quot;debug&quot; \],
+                &quot;isBuildCommand&quot;: false,
+                &quot;showOutput&quot;: &quot;always&quot;,
+                &quot;echoCommand&quot;: true
+            },
+            {
+                &quot;taskName&quot;: &quot;composeForDebug&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[&quot;-ExecutionPolicy&quot;, &quot;RemoteSigned&quot;, &quot;.\\\\dockerTask.ps1&quot;, &quot;-ComposeForDebug&quot;, &quot;-Environment&quot;, &quot;debug&quot; \],
+                &quot;isBuildCommand&quot;: false,
+                &quot;showOutput&quot;: &quot;always&quot;,
+                &quot;echoCommand&quot;: true
+            }
+        \]
+    },
+ &quot;**osx**&quot;: {
+        &quot;command&quot;: &quot;/bin/bash&quot;,
+        &quot;options&quot;: {
+            &quot;cwd&quot;: &quot;${workspaceRoot}&quot;
+        },
+        &quot;tasks&quot;: \[
+            {
+                &quot;taskName&quot;: &quot;build&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh build debug&quot; \],
+                &quot;isBuildCommand&quot;: true,
+                &quot;showOutput&quot;: &quot;always&quot;
+            },
+            {
+                &quot;taskName&quot;: &quot;compose&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh compose debug&quot; \],
+                &quot;isBuildCommand&quot;: false,
+                &quot;showOutput&quot;: &quot;always&quot;
+            },
+            {
+                &quot;taskName&quot;: &quot;composeForDebug&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh composeForDebug debug&quot; \],
+                &quot;isBuildCommand&quot;: false,
+                &quot;showOutput&quot;: &quot;always&quot;
+            }
+        \]
+    },
+    &quot;**linux**&quot;: {
+        &quot;command&quot;: &quot;/bin/bash&quot;,
+        &quot;options&quot;: {
+            &quot;cwd&quot;: &quot;${workspaceRoot}&quot;
+        },
+        &quot;tasks&quot;: \[
+            {
+                &quot;taskName&quot;: &quot;build&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh build debug&quot; \],
+                &quot;isBuildCommand&quot;: true,
+                &quot;showOutput&quot;: &quot;always&quot;
+            },
+            {
+                &quot;taskName&quot;: &quot;compose&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh compose debug&quot; \],
+                &quot;isBuildCommand&quot;: false,
+                &quot;showOutput&quot;: &quot;always&quot;
+            },
+            {
+                &quot;taskName&quot;: &quot;composeForDebug&quot;,
+                &quot;suppressTaskName&quot;: true,
+                &quot;args&quot;: \[ &quot;-c&quot;, &quot;./dockerTask.sh composeForDebug debug&quot; \],
+                &quot;isBuildCommand&quot;: false,
+                &quot;showOutput&quot;: &quot;always&quot;
+            }
+        \]
+    }
+}
+</code></pre><h3 id=step-5-compile>Step 5: Compile</h3><p><strong>Note</strong>: In order to compile on Linux, you must first assign execute permissions to the dockerTask.sh file by using the following command in the terminal:</p><pre><code>chmod +x dockerTask.sh
+</code></pre><p>When compiling the solution, you should get a result like this:</p><pre><code>Building the project (debug).
+Microsoft (R) Build Engine versión 15.3.409.57025 para .NET Core
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+DockerDebug -&gt; /home/diegoortizmatajira/Código/Sandbox/DockerDebug/bin/debug/netcoreapp2.0/debian.8-x64/DockerDebug.dll
+ DockerDebug -&gt; /home/diegoortizmatajira/Código/Sandbox/DockerDebug/bin/debug/netcoreapp2.0/publish/
+Building the image dockerdebug (debug).
+Building dockerdebug
+Step 1/8 : FROM microsoft/dotnet:2.0.0-sdk
+ ---&gt; a7dd4972fc95
+Step 2/8 : ENV NUGET\_XMLDOC\_MODE skip
+ ---&gt; Using cache
+ ---&gt; 5185bef2ef3b
+Step 3/8 : ARG CLRDBG\_VERSION=VS2015U2
+ ---&gt; Using cache
+ ---&gt; 6fbf2e0c733e
+Step 4/8 : WORKDIR /clrdbg
+ ---&gt; Using cache
+ ---&gt; 0547ccd07803
+Step 5/8 : RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends unzip &amp;&amp; rm -rf /var/lib/apt/lists/\* &amp;&amp; curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
+ ---&gt; Using cache
+ ---&gt; 9817b6e47d20
+Step 6/8 : WORKDIR /app
+ ---&gt; Using cache
+ ---&gt; ac302cab1a38
+Step 7/8 : ENTRYPOINT /bin/bash -c if \[ -z &quot;$REMOTE\_DEBUGGING&quot; \]; then dotnet DockerDebug.dll; else sleep infinity; fi
+ ---&gt; Running in 5bf34ee4c155
+ ---&gt; 5e92325ef187
+Removing intermediate container 5bf34ee4c155
+Step 8/8 : COPY . /app
+ ---&gt; 11678806ad1c
+Removing intermediate container 0a7a94fbfaaf
+Successfully built 11678806ad1c
+Successfully tagged dockerdebug:debug
+</code></pre><p>In this way, it is evident that the image of the application for debugging was correctly created.</p><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i2.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug05-1.png?resize=648%2C449" data-srcset="https://i2.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug05-1.png?resize=648%2C449, https://i2.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug05-1.png?resize=648%2C449 1.5x, https://i2.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug05-1.png?resize=648%2C449 2x" data-sizes=auto alt="https://i2.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug05-1.png?resize=648%2C449" title="https://i2.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug05-1.png?resize=648%2C449"></p><h3 id=step-6-debug-the-application>Step 6: Debug the application</h3><p>For test purposes, a simple code fragment is added to the application and a breakpoint is defined in order to validate the possibility of debugging the code:</p><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug06-1.png?resize=648%2C449" data-srcset="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug06-1.png?resize=648%2C449, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug06-1.png?resize=648%2C449 1.5x, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug06-1.png?resize=648%2C449 2x" data-sizes=auto alt="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug06-1.png?resize=648%2C449" title="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug06-1.png?resize=648%2C449"></p><p>And proceed to run the application and verify that the breakpoint is reached and that normal debugging tools can be used.</p><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug07-1.png?resize=648%2C448" data-srcset="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug07-1.png?resize=648%2C448, https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug07-1.png?resize=648%2C448 1.5x, https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug07-1.png?resize=648%2C448 2x" data-sizes=auto alt="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug07-1.png?resize=648%2C448" title="https://i1.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug07-1.png?resize=648%2C448"></p><p>You can verify that the container is running using the Docker command-line interface (CLI) in the terminal window.</p><pre><code>docker ps
+</code></pre><p><img class=lazyload src=/svg/loading.min.svg data-src="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug08-1.png?resize=648%2C134" data-srcset="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug08-1.png?resize=648%2C134, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug08-1.png?resize=648%2C134 1.5x, https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug08-1.png?resize=648%2C134 2x" data-sizes=auto alt="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug08-1.png?resize=648%2C134" title="https://i0.wp.com/get-software.com.co/wp-content/uploads/2017/09/dockerdebug08-1.png?resize=648%2C134"></p><h2 id=conclusion>Conclusion</h2><p>According to what was done, it was possible to configure in Visual Studio Code a .Net Core application that runs in a Docker container and can be debugged as if the application was executed directly on the development team.</p><p>This enables the creation and debugging of complex applications that interact with multiple containers and are orchestrated using a docker-compose.yml file.</p><p><strong>NOTE</strong>: In spite of orchestrating services with docker-compose, it will not be possible to scale the service being debugged, since the debugger can only be connected to one container at a time.</p></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2017-09-02</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/docker/>Docker</a>,&nbsp;<a href=/tags/csharp/>CSharp</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/>Home</a></span></section></div><div class=post-nav></div></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.85.0">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw"></i> LoveIt</a></div><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/ target=_blank></a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw"></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw"></i></a></div><script type=text/javascript src=/lib/smooth-scroll/smooth-scroll.min.js></script><script type=text/javascript src=/lib/lazysizes/lazysizes.min.js></script><script type=text/javascript src=/lib/clipboard/clipboard.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:10},comment:{}}</script><script type=text/javascript src=/js/theme.min.js></script></body></html>
