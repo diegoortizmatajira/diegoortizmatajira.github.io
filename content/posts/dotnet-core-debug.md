@@ -1,6 +1,7 @@
 ---
 title: "Debugging a .Net Core application running in a Docker container, using VS Code"
 date: 2017-09-02T15:51:08-05:00
+author: Diego Ortiz
 description: "Describes how to enable debugging a .Net Core from VsCode while running on docker" 
 featured: true 
 draft: false 
