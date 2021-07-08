@@ -49,3 +49,7 @@ weight = 4
 [markup.highlight]
 # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
 noClasses = false
+
+[params.social]
+LinkedIn = "diegoortizmatajira"
+GitHub = "diegoortizmatajira"

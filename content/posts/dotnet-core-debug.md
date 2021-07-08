@@ -114,7 +114,7 @@ Given that the yeoman docker generator was originally created for .Net Core 1.0,
 #### Update .csproj project file
 
 Add the following lines to the file inside the ```<Project> </ Project>```
-```
+{{< highlight xml >}}
 <ItemGroup>
   <None Update="Dockerfile">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -129,7 +129,8 @@ Add the following lines to the file inside the ```<Project> </ Project>```
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>
 </ItemGroup>
-```
+{{< /highlight >}}
+
 These lines tell the project to include docker support files when it generates publication files.
 
 #### Update dockerfile
@@ -137,25 +138,25 @@ These lines tell the project to include docker support files when it generates p
 In the file dockerfile you must adjust the base image of docker to use according to the version of .Net Core (in this case 2.0).
 
 Original file:
-```
+{{< highlight dockerfile >}}
 FROM **microsoft/dotnet:1.0.0-core**
 WORKDIR /app
 ENTRYPOINT \["dotnet", "DockerDebug.dll"\]
 COPY . /app
-```
+{{< /highlight >}}
 Adjusted file:
-```
+{{< highlight dockerfile >}}
 FROM **microsoft/dotnet:2.0.0-runtime**
 WORKDIR /app
 ENTRYPOINT \["dotnet", "DockerDebug.dll"\]
 COPY . /app
-```
+{{< /highlight >}}
 #### Update dockerfile.debug
 
 in the dockerfile.debug file you must adjust the docker base image and the commands required to enable debugging:
 
 Original file:
-```
+{{< highlight dockerfile >}}
 FROM **microsoft/dotnet:1.0.0-preview2-sdk**
 ENV NUGET\_XMLDOC\_MODE skip
 ARG CLRDBG\_VERSION=VS2015U2
@@ -167,9 +168,9 @@ WORKDIR /clrdbg
 WORKDIR /app
 ENTRYPOINT \["/bin/bash", "-c", "if \[ -z \\"$REMOTE\_DEBUGGING\\" \]; then dotnet DockerDebug.dll; else sleep infinity; fi"\]
 COPY . /app
-```
+{{< /highlight >}}
 Adjusted file
-```
+{{< highlight dockerfile >}}
 FROM **microsoft/dotnet:2.0.0-sdk**
 ENV NUGET\_XMLDOC\_MODE skip
 ARG CLRDBG\_VERSION=VS2015U2
@@ -182,7 +183,8 @@ WORKDIR /clrdbg
 WORKDIR /app
 ENTRYPOINT \["/bin/bash", "-c", "if \[ -z \\"$REMOTE\_DEBUGGING\\" \]; then dotnet DockerDebug.dll; else sleep infinity; fi"\]
 COPY . /app
-```
+{{< /highlight >}}
+
 This is due to adjustments made to the Microsoft utilities that allow debugging.
 
 #### Update dockerTask.ps1
@@ -239,7 +241,7 @@ On section “_pipeTransport_” include the following highlighted line:
 #### Update the tasks.json file
 
 By default the docker generator for Yeoman, only generates the configuration for Windows and for OSX, leaving out the Linux configuration. To solve this, just copy the “osx” section and name it “linux”
-```
+{{< highlight json >}}
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
@@ -335,7 +337,7 @@ By default the docker generator for Yeoman, only generates the configuration for
         \]
     }
 }
-```
+{{< /highlight >}}
 ### Step 5: Compile
 
 **Note**: In order to compile on Linux, you must first assign execute permissions to the dockerTask.sh file by using the following command in the terminal:
