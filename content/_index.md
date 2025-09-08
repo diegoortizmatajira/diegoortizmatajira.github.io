@@ -1,6 +1,6 @@
----
-title: ""
-date: 2021-07-08T16:00:36-05:00
-draft: true
----
-Welcome
++++
+date = '2025-09-08T07:39:04-04:00'
+draft = true
+title = ''
++++
+This is the home content
