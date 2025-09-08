@@ -3,11 +3,53 @@ languageCode = "en-us"
 defaultContentLanguage = "en"
 title = "Diego Ortiz"
 
-theme = 'jimtheme'
+# theme = 'jimtheme'
+theme = "hugo-geekblog"
+[[module.imports]]
+path = "github.com/halogenica/beautifulhugo"
 
 [markup.highlight]
 lineNos = true
 
-[params.social]
-LinkedIn = "diegoortizmatajira"
-GitHub = "diegoortizmatajira"
+[services]
+  [services.googleAnalytics]
+    id = 'G-C9ZPJ1HFD4'
+
+[Params]
+#  homeTitle = "Beautiful Hugo Theme" # Set a different text for the header on the home page
+  subtitle = "Geek by heart, developer by profession"
+  mainSections = ["post","posts"]
+  logo = "img/avatar-icon.png" # Expecting square dimensions
+  favicon = "img/favicon.ico"
+  dateFormat = "January 2, 2006"
+  commit = false
+  rss = true
+  comments = true
+  readingTime = true
+  wordCount = true
+  useHLJS = true
+  socialShare = true
+  delayDisqus = true
+  showRelatedPosts = true
+
+[Params.author]
+# Set only your "username" for default hosts and full URLs otherwise (e.g., "https://MyGitLab.org/username")
+name = "Diego Ortiz"
+website = "yourwebsite.com"
+github = "diegoortizmatajira"
+linkedin = "diegoortizmatajira"
+
+[[menu.main]]
+name = "Blog"
+url = ""
+weight = 1
+
+[[menu.main]]
+name = "About"
+url = "page/about/"
+weight = 3
+
+[[menu.main]]
+name = "Tags"
+url = "tags"
+weight = 3
