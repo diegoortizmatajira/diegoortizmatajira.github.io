@@ -1,4 +1,13 @@
-baseURL = 'https://example.org/'
-languageCode = 'en-us'
-title = 'My New Hugo Site'
+baseURL = "https://diego-ortiz.me/"
+languageCode = "en-us"
+defaultContentLanguage = "en"
+title = "Diego Ortiz"
+
 theme = 'jimtheme'
+
+[markup.highlight]
+lineNos = true
+
+[params.social]
+LinkedIn = "diegoortizmatajira"
+GitHub = "diegoortizmatajira"
