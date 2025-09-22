@@ -1,6 +1,7 @@
 +++
 date = '2025-09-22T14:11:56-04:00'
 title = 'How to create a Neovim plugin'
+draft = false
 tags = [ 'Neovim', 'Plugin' ]
 categories = [ 'Development' ]
 +++
