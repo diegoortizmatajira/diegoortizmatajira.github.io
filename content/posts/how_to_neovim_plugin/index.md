@@ -1,6 +1,5 @@
 +++
-date = '2025-09-23T14:11:56-04:00'
-draft = true
+date = '2025-09-22T14:11:56-04:00'
 title = 'How to create a Neovim plugin'
 tags = [ 'Neovim', 'Plugin' ]
 categories = [ 'Development' ]
@@ -717,3 +716,7 @@ Selecting existing scratch files
 
 ## Conclusion
 
+Thank you for following along in this tutorial! This is my first post, and I
+hope you found it helpful and inspiring. I am planning to share more posts like
+this in the future, so stay tuned for more content. Your feedback is always
+appreciated.
