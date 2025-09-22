@@ -1,12 +1,16 @@
 +++
-date = '2025-09-06T14:11:56-04:00'
+date = '2025-09-23T14:11:56-04:00'
 draft = true
 title = 'How to create a Neovim plugin'
+tags = [ 'Neovim', 'Plugin' ]
+categories = [ 'Development' ]
 +++
 
 This article's intention is to explain how to create a basic neovim plugin,
 letting you understand the basics about its structure, how to add functionality,
 add customizable config and finally expose new commands for users.
+
+<!--more-->
 
 ## Table of content
 
@@ -26,6 +30,13 @@ add customizable config and finally expose new commands for users.
   - [Step 6. Defining Functionality](#step-6-defining-functionality)
   - [Step 7. Exposing Commands](#step-7-exposing-commands)
   - [Step 8. Implementing the actual logic for the plugin](#step-8-implementing-the-actual-logic-for-the-plugin)
+    - [Enhanced configuration](#enhanced-configuration)
+    - [Shared Core functionality](#shared-core-functionality)
+    - [Core functionality](#core-functionality)
+- [Results](#results)
+  - [Using a clean install](#using-a-clean-install)
+  - [Including in your Neovim setup](#including-in-your-neovim-setup)
+- [Conclusion](#conclusion)
 
 <!-- tocstop -->
 
@@ -67,13 +78,13 @@ Now you must clone the repository in your local machine (I will use
   [SourceTree](https://www.sourcetreeapp.com/), etc.)
 - Using your terminal:
 
-  ```
+  ```bash
   git clone <Your repository url>
   ```
 
   For this tutorial my repository url is:
 
-  ```
+  ```bash
   git clone git@github.com:diegoortizmatajira/workspace-scratch-files.nvim.git
   ```
 
@@ -89,7 +100,7 @@ functionality to your editor.
 Here’s a simple structure to keep in mind where `myplugin` is the name you gave
 to your plugin:
 
-```
+```text
 myplugin.nvim/
 ├── lua/
 │   └── myplugin/
@@ -106,7 +117,7 @@ makes it easier for others to contribute.
 
 For this tutorial we'll start by creating the following basic structure:
 
-```
+```text
 ~/Development/contrib/workspace-scratch-files.nvim/..
 ├── lua
 │   └── workspace-scratch-files
@@ -144,7 +155,7 @@ If you want to test your plugin, you have two options:
 
 You can create a test `init.lua` file and start Neovim with this init config file.
 
-```
+```bash
 nvim -u <your test init.lua>
 
 ```
@@ -403,9 +414,306 @@ tag
 
 ### Step 8. Implementing the actual logic for the plugin
 
+Now, we are ready to implement the actual logic for our scratches plugin.
+
+Goals:
+
+- We want to have global or workspace specific scratches (2 default sources).
+- We want to let any user to add custom folders for storing his scratches
+  (custom sources).
+- We want to retrieve all scratch files from all possible sources.
+- We want to search and select scratch files knowing its source (by having an
+  icon).
+- We want to create new scratch files, and selecting where (which source) to
+  use to store our new scratch file.
+
+#### Enhanced configuration
+
+First lets make our configuration available for users:
+
+Modify `workspace-scratch-files/config.lua`:
+
+Lets add the type definition for our config
+
+```lua {hl_lines=["2-5"]}
+--- @class Scratch.config
+--- @field sources table<string, string|fun():string> A table containing source
+--- paths for scratch files.
+--- @field icons table<string, string> A table containing icons for different
+--- scratch file sources.
+```
+
+Lets add some functions to be used as sources:
+
+```lua
+local folder = "/ws-scratches"
+
+--- Retrieves the path for the workspace-specific scratch file source.
+--- This function constructs a unique directory path based on the current
+--- working directory.
+--- The uniqueness is achieved by combining the last folder
+--- name of the current working directory with the first 8 characters of its
+--- SHA-256 hash.
+--- @return string The path to the workspace-specific scratch file source.
+local function get_workspace_source()
+    local cwd = vim.fn.getcwd()
+    -- Get the last folder name of the current working directory
+    local last_folder = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+    -- Hash the current working directory to ensure uniqueness
+    local hashed = vim.fn.sha256(cwd)
+    -- Create a custom name using the last folder and the first 8 characters of
+    -- the hash
+    local custom_name = string.format("%s - %s", last_folder,
+        string.sub(hashed, 1, 8))
+    return vim.fn.stdpath("data") .. folder .. "/" .. custom_name .. "/"
+end
+
+--- Retrieves the path for the global scratch file source.
+--- This function returns the default directory path where global scratch files
+--- are stored.
+--- The path is based on the standard data directory of Neovim.
+--- @return string The path to the global scratch file source.
+local function get_global_source()
+    return vim.fn.stdpath("data") .. folder .. "/global/"
+end
+
+```
+
+Now set the default config:
+
+```lua {hl_lines=["5-13"]}
+local C = {
+    --- Default configuration settings for the Scratch plugin.
+    --- @type Scratch.config
+    default = {
+        sources = {
+            global = get_global_source,
+            workspace = get_workspace_source,
+        },
+        icons = {
+            global = "🌐",
+            workspace = " ",
+            default = "󰚝 ",
+        },
+    },
+    --- Current configuration settings for the Scratch plugin.
+    --- @type Scratch.config?
+    current = nil,
+}
+
+```
+
+#### Shared Core functionality
+
+Let's define some support types for our logic in `workspace-scratch-files/core.lua`:
+
+```lua
+--- @class Scratch.File
+--- @field path string The full path to the scratch file.
+--- @field icon string The icon associated with the scratch file.
+--- @field source string The source type of the scratch file (e.g., "global", "workspace").
+
+--- @class Scratch.Source
+--- @field path string The path to the source directory.
+--- @field icon string The icon associated with the source.
+--- @field source string The name of the source.
+```
+
+Now some reusable logic, for obtaining user-friendly lists from configuration,
+and select items:
+
+```lua
+--- Retrieves all configured sources for scratch files.
+--- @return Scratch.Source[] A list of sources with their paths and icons.
+local function get_sources()
+    local sources = {}
+    for source, path_or_func in pairs(config.current.sources) do
+        local path = type(path_or_func) == "function" and path_or_func() or path_or_func
+        local icon = config.current.icons[source] or config.current.icons.default
+        table.insert(sources, {
+            path = path,
+            icon = icon,
+            source = source,
+        })
+    end
+    return sources
+end
+
+--- Retrieves all files from the specified source path.
+--- @param source_path string The path to the source directory.
+--- @param icon string The icon associated with the source.
+--- @param source string The name of the source.
+--- @return Scratch.File[] A list of scratch files found in the source directory.
+local function get_scratches_from(source_path, icon, source)
+    -- Use vim.fn.glob to get all files in the directory
+    local files = vim.fn.glob(source_path .. "*", false, true)
+    local scratch_files = {}
+    for _, file in ipairs(files) do
+        table.insert(scratch_files, {
+            path = file,
+            icon = icon,
+            source = source,
+        })
+    end
+    return scratch_files
+end
+
+--- Prompts the user to select a scratch file from all available sources and
+--- opens it. If no configuration is found or no scratch files are available,
+--- appropriate notifications are shown.
+--- @param callback fun(file: Scratch.File) A callback function to be called
+--- with the selected file.
+local function select_file(callback)
+    if not config.current then
+        vim.notify("Configuration not found!", vim.log.levels.ERROR)
+        return
+    end
+    local all_files = {}
+    --- Iterate over each source in the configuration
+    for source, path_or_func in pairs(config.current.sources) do
+        --- Determine the path based on whether it's a function or a string
+        local path = type(path_or_func) == "function" and path_or_func() or path_or_func
+        local icon = config.current.icons[source] or config.current.icons.default
+        local files = get_scratches_from(path, icon, source)
+        vim.list_extend(all_files, files)
+    end
+    if vim.tbl_isempty(all_files) then
+        vim.notify("No scratch files found.", vim.log.levels.WARN)
+        return
+    end
+    vim.ui.select(all_files, {
+        format_item = function(item)
+            return string.format("%s %s (%s)", item.icon,
+                vim.fn.fnamemodify(item.path, ":t"), item.source)
+        end,
+    }, callback)
+end
+
+```
+
+#### Core functionality
+
+Let's update the scaffolded methods we created before in `workspace-scratch-files/core.lua`:
+
+For deleting a scratch file, we will need to select it, confirm and finally
+remove it.
+
+```lua {hl_lines=["2-23"]}
+function M.delete_scratch_file()
+    select_file(function(item)
+        if item then
+            --- Confirm deletion
+            vim.ui.input(
+                { prompt = "Are you sure you want to delete " ..
+                    vim.fn.fnamemodify(item.path, ":t") .. "? (y/n): " },
+                function(input)
+                    if input and (input:lower() == "y"
+                        or input:lower() == "yes") then
+                        local success, err = os.remove(item.path)
+                        if success then
+                            vim.notify("Deleted scratch file: " .. item.path)
+                        else
+                            vim.notify("Error deleting file: " .. err, vim.log.levels.ERROR)
+                        end
+                    else
+                        vim.notify("Deletion cancelled.", vim.log.levels.INFO)
+                    end
+                end
+            )
+        end
+    end)
+end
+
+```
+
+For searching a single scratch file, we select it and open it:
+
+```lua {hl_lines=["2-6"]}
+function M.search_scratch_files()
+    select_file(function(item)
+        if item then
+            vim.cmd("edit " .. item.path)
+        end
+    end)
+end
+
+```
+
+For creating a new scratch file, we need to ask the user for the type of
+scratch file (selecting a source), then ask for a filename, and finally open
+such file:
+
+```lua {hl_lines=["3-30"]}
+function M.create_scratch_file()
+    vim.notify("Creating a new scratch file...")
+    vim.ui.select(get_sources(), {
+        prompt = "Select Scratch File Source:",
+        format_item = function(item)
+            return string.format("%s %s", item.icon, item.source)
+        end,
+    }, function(source)
+        if not source then
+            vim.notify("Scratch file creation cancelled.", vim.log.levels.WARN)
+            return
+        end
+        vim.ui.input({ prompt = "Enter scratch file name: " }, function(input)
+            if not input or input == "" then
+                vim.notify(
+                        "Invalid file name. Scratch file creation cancelled.",
+                        vim.log.levels.ERROR)
+                return
+            end
+            local full_path = source.path .. input
+            -- Ensure the directory exists
+            vim.fn.mkdir(vim.fn.fnamemodify(full_path, ":h"), "p")
+            -- Create the file if it doesn't exist and open it
+            if vim.fn.filereadable(full_path) == 0 then
+                vim.fn.writefile({}, full_path)
+            end
+            vim.cmd("edit " .. full_path)
+            vim.notify("Created new scratch file: " .. full_path)
+        end)
+    end)
+end
+
+```
+
+{{< alert alert-info >}}
+You can see the code in the repository at this stage in github at the
+[Steps-8](https://github.com/diegoortizmatajira/workspace-scratch-files.nvim/tree/Step-8)
+tag
+{{< /alert >}}
+
 ---
 
-By the end of these steps, you’ll have created a basic Neovim plugin and
-exposed commands that users can run. From here, the possibilities are
-endless—explore Neovim’s API and Lua’s capabilities to build something truly
-unique!
+## Results
+
+### Using a clean install
+
+Creating a new scratch file
+![Creating a new scratch file](assets/2025-09-22-15-18-36.png)
+
+Providing the file name
+![Providing the filename](assets/2025-09-22-15-19-19.png)
+
+Selection of existing scratch files:
+
+![Selection of existing scratch file](assets/2025-09-22-15-20-55.png)
+
+### Including in your Neovim setup
+
+Including it into your existing setup with plugins such as Telescope.
+
+Selecting the source for a new scratch file
+
+![Selecting the source for a new scratch file](assets/2025-09-22-15-22-29.png)
+
+Providing the new file name
+
+![Providing the new file name](assets/2025-09-22-15-23-50.png)
+
+Selecting existing scratch files
+![Selecting existing scratch files](assets/2025-09-22-15-25-02.png)
+
+## Conclusion
+
