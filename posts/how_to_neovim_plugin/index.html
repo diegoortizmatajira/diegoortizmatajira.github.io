@@ -1,0 +1,732 @@
+<!doctype html><html lang=en itemscope itemtype=http://schema.org/WebPage><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><title>How to create a Neovim plugin -</title><meta name=description content="This article&rsquo;s intention is to explain how to create a basic neovim plugin,
+letting you understand the basics about its structure, how to add functionality,
+add customizable config and finally expose new commands for users."><meta name=author content="Diego Ortiz"><script type=application/ld+json>{"@context":"http://schema.org","@type":"WebSite","name":"Diego Ortiz","url":"https:\/\/diego-ortiz.me\/"}</script><script type=application/ld+json>{"@context":"http://schema.org","@type":"Organization","name":"","url":"https:\/\/diego-ortiz.me\/"}</script><script type=application/ld+json>{"@context":"http://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"item":{"@id":"https:\/\/diego-ortiz.me\/","name":"home"}},{"@type":"ListItem","position":3,"item":{"@id":"https:\/\/diego-ortiz.me\/posts\/how_to_neovim_plugin\/","name":"How to create a neovim plugin"}}]}</script><script type=application/ld+json>{"@context":"http://schema.org","@type":"Article","author":{"name":"Diego Ortiz"},"headline":"How to create a Neovim plugin","description":"This article\u0026rsquo;s intention is to explain how to create a basic neovim plugin, letting you understand the basics about its structure, how to add functionality, add customizable config and finally expose new commands for users.\n","inLanguage":"en","wordCount":2934,"datePublished":"2025-09-22T14:11:56-04:00","dateModified":"2025-09-22T14:11:56-04:00","image":"https:\/\/diego-ortiz.me\/img\/avatar-icon.png","keywords":["Neovim, Plugin"],"mainEntityOfPage":"https:\/\/diego-ortiz.me\/posts\/how_to_neovim_plugin\/","publisher":{"@type":"Organization","name":"https:\/\/diego-ortiz.me\/","logo":{"@type":"ImageObject","url":"https:\/\/diego-ortiz.me\/img\/avatar-icon.png","height":60,"width":60}}}</script><meta property="og:title" content="How to create a Neovim plugin"><meta property="og:description" content="This article&rsquo;s intention is to explain how to create a basic neovim plugin,
+letting you understand the basics about its structure, how to add functionality,
+add customizable config and finally expose new commands for users."><meta property="og:image" content="https://diego-ortiz.me/img/avatar-icon.png"><meta property="og:url" content="https://diego-ortiz.me/posts/how_to_neovim_plugin/"><meta property="og:type" content="website"><meta property="og:site_name" content="Diego Ortiz"><meta name=twitter:title content="How to create a Neovim plugin"><meta name=twitter:description content="This article&rsquo;s intention is to explain how to create a basic neovim plugin,
+letting you understand the basics about its structure, how to add functionality,
+add customizable config and finally …"><meta name=twitter:image content="https://diego-ortiz.me/img/avatar-icon.png"><meta name=twitter:card content="summary_large_image"><link href=https://diego-ortiz.me/img/favicon.ico rel=icon type=image/x-icon><meta name=generator content="Hugo 0.150.0"><link rel=alternate href=https://diego-ortiz.me/index.xml type=application/rss+xml title="Diego Ortiz"><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><link rel=stylesheet href=https://use.fontawesome.com/releases/v6.6.0/css/all.css integrity=sha384-h/hnnw1Bi4nbpD6kE7nYfCXzovi622sY5WBxww8ARKwpdLj5kUWjRuyiXaD1U2JT crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css integrity=sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu crossorigin=anonymous><link rel=stylesheet href=https://diego-ortiz.me/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800"><link rel=stylesheet href=https://diego-ortiz.me/css/syntax.css><link rel=stylesheet href=https://diego-ortiz.me/css/codeblock.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css integrity=sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh crossorigin=anonymous><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css integrity=sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R crossorigin=anonymous><script async src="https://www.googletagmanager.com/gtag/js?id=G-C9ZPJ1HFD4"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-C9ZPJ1HFD4")}</script></head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class=container-fluid><div class=navbar-header><button type=button class=navbar-toggle data-toggle=collapse data-target=#main-navbar>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+</button>
+<a class=navbar-brand href=https://diego-ortiz.me/>Diego Ortiz</a></div><div class="collapse navbar-collapse" id=main-navbar><ul class="nav navbar-nav navbar-right"><li><a title=Blog href=/>Blog</a></li><li><a title=About href=/page/about/>About</a></li><li><a title=Tags href=/tags>Tags</a></li></ul></div><div class=avatar-container><div class=avatar-img-border><a title="Diego Ortiz" href=https://diego-ortiz.me/><img class=avatar-img src=https://diego-ortiz.me/img/avatar-icon.png alt="Diego Ortiz"></a></div></div></div></nav><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><header class=header-section><div class="intro-header no-img"><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=posts-heading><h1>How to create a Neovim plugin</h1><hr class=small></div></div></div></div></div></header><div class=container role=main><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role=main class=blog-post><p>This article&rsquo;s intention is to explain how to create a basic neovim plugin,
+letting you understand the basics about its structure, how to add functionality,
+add customizable config and finally expose new commands for users.</p><h2 id=table-of-content>Table of content</h2><ul><li><a href=#why-create-a-neovim-plugin>Why Create a Neovim Plugin?</a></li><li><a href=#tutorial-steps>Tutorial Steps</a><ul><li><a href=#step-1-create-a-new-repository>Step 1. Create a new repository</a></li><li><a href=#step-2-plugin-file-structure>Step 2. Plugin File Structure</a></li><li><a href=#step-3-initial-code-for-the-plugin>Step 3. Initial code for the plugin</a></li><li><a href=#step-4-testing-your-new-plugin>Step 4. Testing your new plugin</a><ul><li><a href=#testing-in-a-clean-setup>Testing in a clean setup</a></li><li><a href=#adding-your-plugin-to-your-existing-setup>Adding your plugin to your existing setup</a></li><li><a href=#packer>Packer</a></li><li><a href=#lazynvim>Lazy.nvim</a></li></ul></li><li><a href=#step-5-adding-config-settings>Step 5. Adding config settings</a></li><li><a href=#step-6-defining-functionality>Step 6. Defining Functionality</a></li><li><a href=#step-7-exposing-commands>Step 7. Exposing Commands</a></li><li><a href=#step-8-implementing-the-actual-logic-for-the-plugin>Step 8. Implementing the actual logic for the plugin</a><ul><li><a href=#enhanced-configuration>Enhanced configuration</a></li><li><a href=#shared-core-functionality>Shared Core functionality</a></li><li><a href=#core-functionality>Core functionality</a></li></ul></li></ul></li><li><a href=#results>Results</a><ul><li><a href=#using-a-clean-install>Using a clean install</a></li><li><a href=#including-in-your-neovim-setup>Including in your Neovim setup</a></li></ul></li><li><a href=#conclusion>Conclusion</a></li></ul><h2 id=why-create-a-neovim-plugin>Why Create a Neovim Plugin?</h2><p>Neovim isn&rsquo;t just a text editor—it&rsquo;s a productivity powerhouse for developers,
+writers, and creators alike. What&rsquo;s truly exciting about Neovim is its ability
+to adapt to your workflow through plugins. Whether you&rsquo;re looking to automate
+repetitive tasks, enhance your coding experience, or add a personal touch to
+your editor, plugins can make it happen. And the best part? You can create your
+own plugin tailored to your needs, even if you&rsquo;re new to coding or Neovim.
+Let&rsquo;s dive into how to make that happen!</p><h2 id=tutorial-steps>Tutorial Steps</h2><p>Please follow those steps using your tools of preference.</p><h3 id=step-1-create-a-new-repository>Step 1. Create a new repository</h3><p>First step to create a plugin for people to include it in their Neovim setups
+is to create a public repository.</p><ul><li><p>You can create it in github.com</p></li><li><p>You must select the name for the plugin, when written in lua for neovim you
+can add &ldquo;.nvim&rdquo; to make it explicit.</p></li><li><p>Add a description for your repository.</p></li><li><p>You can choose to create a README.md file</p></li><li><p>You can add a default .gitignore file</p><p><img src=./assets/2025-09-21-12-23-47.png alt="Repository creation in github"></p></li></ul><p>Now you must clone the repository in your local machine (I will use
+<code>~/Development/contrib/</code> as the location for my plugin repository folder):</p><ul><li><p>You can do it from the code editor directly (i.e. Neovim, VsCode, Sublime, etc.)</p></li><li><p>Using a git UI client (i.e. <a href=https://github.com/apps/desktop>Github
+desktop</a>,
+<a href=https://www.gitkraken.com/git-client>GitKraken</a>,
+<a href=https://www.sourcetreeapp.com/>SourceTree</a>, etc.)</p></li><li><p>Using your terminal:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>git clone &lt;Your repository url&gt;
+</span></span></code></pre></td></tr></table></div></div><p>For this tutorial my repository url is:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>git clone git@github.com:diegoortizmatajira/workspace-scratch-files.nvim.git
+</span></span></code></pre></td></tr></table></div></div></li></ul><p>Now you are ready to start working in your plugin.</p><h3 id=step-2-plugin-file-structure>Step 2. Plugin File Structure</h3><p>Before diving into code, it’s important to understand how plugins are
+organized. At its core, a Neovim plugin is just a collection of script files,
+often written in Lua or Vimscript. These files are responsible for adding
+functionality to your editor.</p><p>Here’s a simple structure to keep in mind where <code>myplugin</code> is the name you gave
+to your plugin:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>myplugin.nvim/
+</span></span><span style=display:flex><span>├── lua/
+</span></span><span style=display:flex><span>│   └── myplugin/
+</span></span><span style=display:flex><span>│       └── init.lua
+</span></span><span style=display:flex><span>└── README.md
+</span></span></code></pre></td></tr></table></div></div><ul><li><strong>lua/</strong>: This folder contains all Lua scripts.</li><li><strong>myplugin/</strong>: A namespace for your plugin files.</li><li><strong>init.lua</strong>: This is the entry point for your plugin.</li></ul><p>Keeping your plugin well-structured not only helps you stay organized but also
+makes it easier for others to contribute.</p><p>For this tutorial we&rsquo;ll start by creating the following basic structure:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>~/Development/contrib/workspace-scratch-files.nvim/..
+</span></span><span style=display:flex><span>├── lua
+</span></span><span style=display:flex><span>│   └── workspace-scratch-files
+</span></span><span style=display:flex><span>│       └── init.lua
+</span></span><span style=display:flex><span>├── .gitignore
+</span></span><span style=display:flex><span>├── LICENSE
+</span></span><span style=display:flex><span>└── README.md
+</span></span></code></pre></td></tr></table></div></div><h3 id=step-3-initial-code-for-the-plugin>Step 3. Initial code for the plugin</h3><p>In <code>workspace-scratch-files/init.lua</code>, start with something simple like:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>local</span> M <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>setup</span>()
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Your setup code here</span>
+</span></span><span style=display:flex><span>    vim.notify(<span style=color:#e6db74>&#34;Workspace Scratch Files initialized&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> M
+</span></span></code></pre></td></tr></table></div></div><p>This will give you a working plugin that simply prints a message when setup.</p><h3 id=step-4-testing-your-new-plugin>Step 4. Testing your new plugin</h3><p>If you want to test your plugin, you have two options:</p><ul><li>Testing it in a clean setup</li><li>Adding the plugin to your existing setup</li></ul><h4 id=testing-in-a-clean-setup>Testing in a clean setup</h4><p>You can create a test <code>init.lua</code> file and start Neovim with this init config file.</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>nvim -u &lt;your test init.lua&gt;
+</span></span></code></pre></td></tr></table></div></div><p>For example you can add a <code>test/init.lua</code> file with the next content:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- You will be adding your plugin code the runtime path (to use it without a</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- plugin manager)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>vim.opt.runtimepath:prepend(vim.fn.getcwd())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> plugin <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;workspace-scratch-files&#34;</span>)
+</span></span><span style=display:flex><span>plugin.setup()
+</span></span></code></pre></td></tr></table></div></div><p>Then, from the <strong>root folder in your repository</strong> you can run the following command
+in a terminal (this tells Neovim to use our test init config file):</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>nvim -u test/init.lua
+</span></span></code></pre></td></tr></table></div></div><p>And you will see this (note the message at the bottom):</p><p><img src=assets/2025-09-21-13-43-04.png alt="Clean run for the plugin"></p><h4 id=adding-your-plugin-to-your-existing-setup>Adding your plugin to your existing setup</h4><p>If you want to add your plugin, you will need to add your repository path into
+your plugin manager as a new plugin, those instructions will depend on your
+plugin manager:</p><h4 id=packer>Packer</h4><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span>use {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;~/Development/contrib/workspace-scratch-files.nvim&#34;</span>,
+</span></span><span style=display:flex><span>    config <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span>()
+</span></span><span style=display:flex><span>        require(<span style=color:#e6db74>&#34;workspace-scratch-files&#34;</span>).setup()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><h4 id=lazynvim>Lazy.nvim</h4><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    dir <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;~/Development/contrib/workspace-scratch-files.nvim&#34;</span>,
+</span></span><span style=display:flex><span>    opts <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>And you will see your normal setup and the new plugin added to it (note the
+notification popup at the bottom-right corner):</p><p><img src=assets/2025-09-21-14-05-58.png alt="New plugin added to existing config"></p><div class="alert alert-info" role=alert>You can see the code in the repository at this stage in github at the
+<a href=https://github.com/diegoortizmatajira/workspace-scratch-files.nvim/tree/steps-1-to-3>Steps-1-to-3</a>
+tag</div><h3 id=step-5-adding-config-settings>Step 5. Adding config settings</h3><p>Create a <code>workspace-scratch-files/config.lua</code> module file.</p><p>It is recommended (Not mandatory) to add comments and annotations to the types
+definitions, to help any further development to be consistent and
+self-documented.</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- @class Scratch.config</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field test_message string A test message for demonstration purposes.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> C <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- Default configuration settings for the Scratch plugin.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- @type Scratch.config</span>
+</span></span><span style=display:flex><span>    default <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>        test_message <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Hello from Scratch plugin!&#34;</span>,
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- Current configuration settings for the Scratch plugin.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- @type Scratch.config?</span>
+</span></span><span style=display:flex><span>    current <span style=color:#f92672>=</span> <span style=color:#66d9ef>nil</span>,
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Updates the current configuration with a new configuration.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- If the provided configuration is not a table or is nil, the update is ignored.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param new_config? Scratch.config new configuraton to be applied</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>C</span>.<span style=color:#a6e22e>update</span>(new_config)
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- Initializes or overrides the current configuration with the new configuration.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- If no current configuration exists, it defaults to the default configuration.</span>
+</span></span><span style=display:flex><span>    C.current <span style=color:#f92672>=</span> vim.tbl_deep_extend(<span style=color:#e6db74>&#34;force&#34;</span>, C.current <span style=color:#f92672>or</span> C.default, new_config
+</span></span><span style=display:flex><span>        <span style=color:#f92672>or</span> {})
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> C
+</span></span></code></pre></td></tr></table></div></div><p>Back into <code>workspace-scratch-files/init.lua</code>, modify the code to use our config module</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>local</span> config <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;workspace-scratch-files.config&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> M <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>setup</span>(opts)
+</span></span><span style=display:flex><span>    config.update(opts)
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Your setup code here</span>
+</span></span><span style=display:flex><span>    vim.notify(config.current.test_message)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> M
+</span></span></code></pre></td></tr></table></div></div><p>if we just run our test environment without adding specific configuration, we
+will get the default message:</p><p><img src=assets/2025-09-22-07-59-54.png alt="Running with default config"></p><p>If we provide custom settings in our clean setup(<code>test/init.lua</code>):</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">9
+</span></span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- You will be adding your plugin code the runtime path (to use it without a</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- plugin manager)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>vim.opt.runtimepath:prepend(vim.fn.getcwd())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> plugin <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;workspace-scratch-files&#34;</span>)
+</span></span><span style=display:flex;background-color:#3c3d38><span>plugin.setup({
+</span></span><span style=display:flex;background-color:#3c3d38><span>    test_message <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;This is a custom test message!&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>})
+</span></span></code></pre></td></tr></table></div></div><p>or modify the plugin options in our plugin manager:</p><ul><li><p>Packer</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span>use {
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;~/Development/contrib/workspace-scratch-files.nvim&#34;</span>,
+</span></span><span style=display:flex><span>  config <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span>()
+</span></span><span style=display:flex;background-color:#3c3d38><span>      require(<span style=color:#e6db74>&#34;workspace-scratch-files&#34;</span>).setup({
+</span></span><span style=display:flex;background-color:#3c3d38><span>          test_message <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;This is a custom test message!&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>      })
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div></li><li><p>Lazy.nvim</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  dir <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;~/Development/contrib/workspace-scratch-files.nvim&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>  opts <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex;background-color:#3c3d38><span>      test_message <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;This is a custom test message!&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div></li></ul><p>You will see something like the following result (see customized message at the bottom):</p><p><img src=assets/2025-09-22-09-21-26.png alt="Custom message from settings"></p><h3 id=step-6-defining-functionality>Step 6. Defining Functionality</h3><p>Now we are going to create the code that defines the functionality we want to
+expose.</p><p>Note: We can implement this part directly in init.lua, but it is recommended to
+have a clear separation of responsibilities:</p><ul><li>init.lua: Only exposes the setup method and commands to neovim.</li><li>individual additional modules implement specific features only, this way it
+is easier to manage how they are implemented.</li></ul><p>So, we are going to create an individual module for the actual implementation
+of our features, we can start just creating the placeholders for each function.</p><p>Let&rsquo;s create a new file <code>workspace-scratch-files/core.lua</code> with:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>local</span> M <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>delete_scratch_file</span>(file_path)
+</span></span><span style=display:flex><span>    vim.notify(<span style=color:#e6db74>&#34;Deleting scratch file: &#34;</span> <span style=color:#f92672>..</span> file_path)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>search_scratch_files</span>()
+</span></span><span style=display:flex><span>    vim.notify(<span style=color:#e6db74>&#34;Searching scratch files...&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>create_scratch_file</span>()
+</span></span><span style=display:flex><span>    vim.notify(<span style=color:#e6db74>&#34;Creating a new scratch file...&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> M
+</span></span></code></pre></td></tr></table></div></div><p>Actual implementation will be done later, for now we have defined our features
+in this core module.</p><h3 id=step-7-exposing-commands>Step 7. Exposing Commands</h3><p>Exposing commands makes it easy for users to interact with your plugin. Always
+choose clear and descriptive names for these commands. Use
+<a href=https://neovim.io/doc/user/api.html#nvim_create_user_command()>vim.api.nvim_create_user_command</a>
+to define them, as shown below.</p><p><code>workspace-scratch-files/init.lua</code>:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>local</span> config <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;workspace-scratch-files.config&#34;</span>)
+</span></span><span style=display:flex;background-color:#3c3d38><span><span style=color:#66d9ef>local</span> core <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;workspace-scratch-files.core&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> M <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>setup</span>(opts)
+</span></span><span style=display:flex><span>    config.update(opts)
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Your setup code here</span>
+</span></span><span style=display:flex><span>    vim.notify(config.current.test_message)
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#75715e>-- Create user commands: ScratchDelete, ScratchSearch, ScratchNew</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>    vim.api.nvim_create_user_command(<span style=color:#e6db74>&#34;ScratchNew&#34;</span>, <span style=color:#66d9ef>function</span>()
+</span></span><span style=display:flex;background-color:#3c3d38><span>        core.create_scratch_file()
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#66d9ef>end</span>, { nargs <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> })
+</span></span><span style=display:flex;background-color:#3c3d38><span>    vim.api.nvim_create_user_command(<span style=color:#e6db74>&#34;ScratchSearch&#34;</span>, <span style=color:#66d9ef>function</span>()
+</span></span><span style=display:flex;background-color:#3c3d38><span>        core.search_scratch_files()
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#66d9ef>end</span>, { nargs <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> })
+</span></span><span style=display:flex;background-color:#3c3d38><span>    vim.api.nvim_create_user_command(<span style=color:#e6db74>&#34;ScratchDelete&#34;</span>, <span style=color:#66d9ef>function</span>()
+</span></span><span style=display:flex;background-color:#3c3d38><span>        core.delete_scratch_file()
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#66d9ef>end</span>, { nargs <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> })
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> M
+</span></span></code></pre></td></tr></table></div></div><p>Now you can run your neovim test environment and see our three commands
+available in neovim (If you run them, they will display their corresponding
+test messages):</p><p><img src=assets/2025-09-22-11-17-28.png alt="New commands available"></p><p>For example if you execute <code>:ScratchSearch</code> you will see:</p><p><img src=assets/2025-09-22-11-18-11.png alt="Sample execution of ScratchSearch"></p><div class="alert alert-info" role=alert>You can see the code in the repository at this stage in github at the
+<a href=https://github.com/diegoortizmatajira/workspace-scratch-files.nvim/tree/Steps-4-to-7>Steps-4-to-7</a>
+tag</div><h3 id=step-8-implementing-the-actual-logic-for-the-plugin>Step 8. Implementing the actual logic for the plugin</h3><p>Now, we are ready to implement the actual logic for our scratches plugin.</p><p>Goals:</p><ul><li>We want to have global or workspace specific scratches (2 default sources).</li><li>We want to let any user to add custom folders for storing his scratches
+(custom sources).</li><li>We want to retrieve all scratch files from all possible sources.</li><li>We want to search and select scratch files knowing its source (by having an
+icon).</li><li>We want to create new scratch files, and selecting where (which source) to
+use to store our new scratch file.</li></ul><h4 id=enhanced-configuration>Enhanced configuration</h4><p>First lets make our configuration available for users:</p><p>Modify <code>workspace-scratch-files/config.lua</code>:</p><p>Lets add the type definition for our config</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- @class Scratch.config</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span><span style=color:#75715e>--- @field sources table&lt;string, string|fun():string&gt; A table containing source</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span><span style=color:#75715e>--- paths for scratch files.</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span><span style=color:#75715e>--- @field icons table&lt;string, string&gt; A table containing icons for different</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span><span style=color:#75715e>--- scratch file sources.</span>
+</span></span></code></pre></td></tr></table></div></div><p>Lets add some functions to be used as sources:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>local</span> folder <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;/ws-scratches&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Retrieves the path for the workspace-specific scratch file source.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- This function constructs a unique directory path based on the current</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- working directory.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- The uniqueness is achieved by combining the last folder</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- name of the current working directory with the first 8 characters of its</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- SHA-256 hash.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return string The path to the workspace-specific scratch file source.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>get_workspace_source</span>()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> cwd <span style=color:#f92672>=</span> vim.fn.getcwd()
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Get the last folder name of the current working directory</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> last_folder <span style=color:#f92672>=</span> vim.fn.fnamemodify(vim.fn.getcwd(), <span style=color:#e6db74>&#34;:t&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Hash the current working directory to ensure uniqueness</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> hashed <span style=color:#f92672>=</span> vim.fn.sha256(cwd)
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Create a custom name using the last folder and the first 8 characters of</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- the hash</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> custom_name <span style=color:#f92672>=</span> string.format(<span style=color:#e6db74>&#34;%s - %s&#34;</span>, last_folder,
+</span></span><span style=display:flex><span>        string.sub(hashed, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>8</span>))
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> vim.fn.stdpath(<span style=color:#e6db74>&#34;data&#34;</span>) <span style=color:#f92672>..</span> folder <span style=color:#f92672>..</span> <span style=color:#e6db74>&#34;/&#34;</span> <span style=color:#f92672>..</span> custom_name <span style=color:#f92672>..</span> <span style=color:#e6db74>&#34;/&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Retrieves the path for the global scratch file source.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- This function returns the default directory path where global scratch files</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- are stored.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- The path is based on the standard data directory of Neovim.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return string The path to the global scratch file source.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>get_global_source</span>()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> vim.fn.stdpath(<span style=color:#e6db74>&#34;data&#34;</span>) <span style=color:#f92672>..</span> folder <span style=color:#f92672>..</span> <span style=color:#e6db74>&#34;/global/&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><p>Now set the default config:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>local</span> C <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- Default configuration settings for the Scratch plugin.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- @type Scratch.config</span>
+</span></span><span style=display:flex><span>    default <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex;background-color:#3c3d38><span>        sources <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex;background-color:#3c3d38><span>            global <span style=color:#f92672>=</span> get_global_source,
+</span></span><span style=display:flex;background-color:#3c3d38><span>            workspace <span style=color:#f92672>=</span> get_workspace_source,
+</span></span><span style=display:flex;background-color:#3c3d38><span>        },
+</span></span><span style=display:flex;background-color:#3c3d38><span>        icons <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex;background-color:#3c3d38><span>            global <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;🌐&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>            workspace <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34; &#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>            default <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;󰚝 &#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>        },
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- Current configuration settings for the Scratch plugin.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- @type Scratch.config?</span>
+</span></span><span style=display:flex><span>    current <span style=color:#f92672>=</span> <span style=color:#66d9ef>nil</span>,
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><h4 id=shared-core-functionality>Shared Core functionality</h4><p>Let&rsquo;s define some support types for our logic in <code>workspace-scratch-files/core.lua</code>:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- @class Scratch.File</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field path string The full path to the scratch file.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field icon string The icon associated with the scratch file.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field source string The source type of the scratch file (e.g., &#34;global&#34;, &#34;workspace&#34;).</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @class Scratch.Source</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field path string The path to the source directory.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field icon string The icon associated with the source.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @field source string The name of the source.</span>
+</span></span></code></pre></td></tr></table></div></div><p>Now some reusable logic, for obtaining user-friendly lists from configuration,
+and select items:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- Retrieves all configured sources for scratch files.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return Scratch.Source[] A list of sources with their paths and icons.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>get_sources</span>()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> sources <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> source, path_or_func <span style=color:#66d9ef>in</span> pairs(config.current.sources) <span style=color:#66d9ef>do</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> path <span style=color:#f92672>=</span> type(path_or_func) <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;function&#34;</span> <span style=color:#f92672>and</span> path_or_func() <span style=color:#f92672>or</span> path_or_func
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> icon <span style=color:#f92672>=</span> config.current.icons[source] <span style=color:#f92672>or</span> config.current.icons.default
+</span></span><span style=display:flex><span>        table.insert(sources, {
+</span></span><span style=display:flex><span>            path <span style=color:#f92672>=</span> path,
+</span></span><span style=display:flex><span>            icon <span style=color:#f92672>=</span> icon,
+</span></span><span style=display:flex><span>            source <span style=color:#f92672>=</span> source,
+</span></span><span style=display:flex><span>        })
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> sources
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Retrieves all files from the specified source path.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param source_path string The path to the source directory.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param icon string The icon associated with the source.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param source string The name of the source.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return Scratch.File[] A list of scratch files found in the source directory.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>get_scratches_from</span>(source_path, icon, source)
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Use vim.fn.glob to get all files in the directory</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> files <span style=color:#f92672>=</span> vim.fn.glob(source_path <span style=color:#f92672>..</span> <span style=color:#e6db74>&#34;*&#34;</span>, <span style=color:#66d9ef>false</span>, <span style=color:#66d9ef>true</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> scratch_files <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> _, file <span style=color:#66d9ef>in</span> ipairs(files) <span style=color:#66d9ef>do</span>
+</span></span><span style=display:flex><span>        table.insert(scratch_files, {
+</span></span><span style=display:flex><span>            path <span style=color:#f92672>=</span> file,
+</span></span><span style=display:flex><span>            icon <span style=color:#f92672>=</span> icon,
+</span></span><span style=display:flex><span>            source <span style=color:#f92672>=</span> source,
+</span></span><span style=display:flex><span>        })
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> scratch_files
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Prompts the user to select a scratch file from all available sources and</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- opens it. If no configuration is found or no scratch files are available,</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- appropriate notifications are shown.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param callback fun(file: Scratch.File) A callback function to be called</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- with the selected file.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>select_file</span>(callback)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> config.current <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        vim.notify(<span style=color:#e6db74>&#34;Configuration not found!&#34;</span>, vim.log.levels.ERROR)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> all_files <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>    <span style=color:#75715e>--- Iterate over each source in the configuration</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> source, path_or_func <span style=color:#66d9ef>in</span> pairs(config.current.sources) <span style=color:#66d9ef>do</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>--- Determine the path based on whether it&#39;s a function or a string</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> path <span style=color:#f92672>=</span> type(path_or_func) <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;function&#34;</span> <span style=color:#f92672>and</span> path_or_func() <span style=color:#f92672>or</span> path_or_func
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> icon <span style=color:#f92672>=</span> config.current.icons[source] <span style=color:#f92672>or</span> config.current.icons.default
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> files <span style=color:#f92672>=</span> get_scratches_from(path, icon, source)
+</span></span><span style=display:flex><span>        vim.list_extend(all_files, files)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> vim.tbl_isempty(all_files) <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        vim.notify(<span style=color:#e6db74>&#34;No scratch files found.&#34;</span>, vim.log.levels.WARN)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    vim.ui.select(all_files, {
+</span></span><span style=display:flex><span>        format_item <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span>(item)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> string.format(<span style=color:#e6db74>&#34;%s %s (%s)&#34;</span>, item.icon,
+</span></span><span style=display:flex><span>                vim.fn.fnamemodify(item.path, <span style=color:#e6db74>&#34;:t&#34;</span>), item.source)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>end</span>,
+</span></span><span style=display:flex><span>    }, callback)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><h4 id=core-functionality>Core functionality</h4><p>Let&rsquo;s update the scaffolded methods we created before in <code>workspace-scratch-files/core.lua</code>:</p><p>For deleting a scratch file, we will need to select it, confirm and finally
+remove it.</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>delete_scratch_file</span>()
+</span></span><span style=display:flex;background-color:#3c3d38><span>    select_file(<span style=color:#66d9ef>function</span>(item)
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>if</span> item <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#75715e>--- Confirm deletion</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            vim.ui.input(
+</span></span><span style=display:flex;background-color:#3c3d38><span>                { prompt <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Are you sure you want to delete &#34;</span> <span style=color:#f92672>..</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                    vim.fn.fnamemodify(item.path, <span style=color:#e6db74>&#34;:t&#34;</span>) <span style=color:#f92672>..</span> <span style=color:#e6db74>&#34;? (y/n): &#34;</span> },
+</span></span><span style=display:flex;background-color:#3c3d38><span>                <span style=color:#66d9ef>function</span>(input)
+</span></span><span style=display:flex;background-color:#3c3d38><span>                    <span style=color:#66d9ef>if</span> input <span style=color:#f92672>and</span> (input:lower() <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;y&#34;</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        <span style=color:#f92672>or</span> input:lower() <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;yes&#34;</span>) <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        <span style=color:#66d9ef>local</span> success, err <span style=color:#f92672>=</span> os.remove(item.path)
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        <span style=color:#66d9ef>if</span> success <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                            vim.notify(<span style=color:#e6db74>&#34;Deleted scratch file: &#34;</span> <span style=color:#f92672>..</span> item.path)
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                            vim.notify(<span style=color:#e6db74>&#34;Error deleting file: &#34;</span> <span style=color:#f92672>..</span> err, vim.log.levels.ERROR)
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                    <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        vim.notify(<span style=color:#e6db74>&#34;Deletion cancelled.&#34;</span>, vim.log.levels.INFO)
+</span></span><span style=display:flex;background-color:#3c3d38><span>                    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            )
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#66d9ef>end</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><p>For searching a single scratch file, we select it and open it:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>search_scratch_files</span>()
+</span></span><span style=display:flex;background-color:#3c3d38><span>    select_file(<span style=color:#66d9ef>function</span>(item)
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>if</span> item <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            vim.cmd(<span style=color:#e6db74>&#34;edit &#34;</span> <span style=color:#f92672>..</span> item.path)
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#66d9ef>end</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><p>For creating a new scratch file, we need to ask the user for the type of
+scratch file (selecting a source), then ask for a filename, and finally open
+such file:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span></span><span style=background-color:#3c3d38><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>M</span>.<span style=color:#a6e22e>create_scratch_file</span>()
+</span></span><span style=display:flex><span>    vim.notify(<span style=color:#e6db74>&#34;Creating a new scratch file...&#34;</span>)
+</span></span><span style=display:flex;background-color:#3c3d38><span>    vim.ui.select(get_sources(), {
+</span></span><span style=display:flex;background-color:#3c3d38><span>        prompt <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Select Scratch File Source:&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>        format_item <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span>(item)
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>return</span> string.format(<span style=color:#e6db74>&#34;%s %s&#34;</span>, item.icon, item.source)
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>end</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>    }, <span style=color:#66d9ef>function</span>(source)
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> source <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            vim.notify(<span style=color:#e6db74>&#34;Scratch file creation cancelled.&#34;</span>, vim.log.levels.WARN)
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>        vim.ui.input({ prompt <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Enter scratch file name: &#34;</span> }, <span style=color:#66d9ef>function</span>(input)
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> input <span style=color:#f92672>or</span> input <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;&#34;</span> <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                vim.notify(
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        <span style=color:#e6db74>&#34;Invalid file name. Scratch file creation cancelled.&#34;</span>,
+</span></span><span style=display:flex;background-color:#3c3d38><span>                        vim.log.levels.ERROR)
+</span></span><span style=display:flex;background-color:#3c3d38><span>                <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>local</span> full_path <span style=color:#f92672>=</span> source.path <span style=color:#f92672>..</span> input
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#75715e>-- Ensure the directory exists</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            vim.fn.mkdir(vim.fn.fnamemodify(full_path, <span style=color:#e6db74>&#34;:h&#34;</span>), <span style=color:#e6db74>&#34;p&#34;</span>)
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#75715e>-- Create the file if it doesn&#39;t exist and open it</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>if</span> vim.fn.filereadable(full_path) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>                vim.fn.writefile({}, full_path)
+</span></span><span style=display:flex;background-color:#3c3d38><span>            <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex;background-color:#3c3d38><span>            vim.cmd(<span style=color:#e6db74>&#34;edit &#34;</span> <span style=color:#f92672>..</span> full_path)
+</span></span><span style=display:flex;background-color:#3c3d38><span>            vim.notify(<span style=color:#e6db74>&#34;Created new scratch file: &#34;</span> <span style=color:#f92672>..</span> full_path)
+</span></span><span style=display:flex;background-color:#3c3d38><span>        <span style=color:#66d9ef>end</span>)
+</span></span><span style=display:flex;background-color:#3c3d38><span>    <span style=color:#66d9ef>end</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><div class="alert alert-info" role=alert>You can see the code in the repository at this stage in github at the
+<a href=https://github.com/diegoortizmatajira/workspace-scratch-files.nvim/tree/Step-8>Steps-8</a>
+tag</div><hr><h2 id=results>Results</h2><h3 id=using-a-clean-install>Using a clean install</h3><p>Creating a new scratch file
+<img src=assets/2025-09-22-15-18-36.png alt="Creating a new scratch file"></p><p>Providing the file name
+<img src=assets/2025-09-22-15-19-19.png alt="Providing the filename"></p><p>Selection of existing scratch files:</p><p><img src=assets/2025-09-22-15-20-55.png alt="Selection of existing scratch file"></p><h3 id=including-in-your-neovim-setup>Including in your Neovim setup</h3><p>Including it into your existing setup with plugins such as Telescope.</p><p>Selecting the source for a new scratch file</p><p><img src=assets/2025-09-22-15-22-29.png alt="Selecting the source for a new scratch file"></p><p>Providing the new file name</p><p><img src=assets/2025-09-22-15-23-50.png alt="Providing the new file name"></p><p>Selecting existing scratch files
+<img src=assets/2025-09-22-15-25-02.png alt="Selecting existing scratch files"></p><h2 id=conclusion>Conclusion</h2><p>Thank you for following along in this tutorial! This is my first post, and I
+hope you found it helpful and inspiring. I am planning to share more posts like
+this in the future, so stay tuned for more content. Your feedback is always
+appreciated.</p><div class=blog-tags><a href=https://diego-ortiz.me/tags/neovim/>Neovim</a>&nbsp;
+<a href=https://diego-ortiz.me/tags/plugin/>Plugin</a>&nbsp;</div><hr><section id=social-share><div class="list-inline footer-links"><div class=share-box aria-hidden=true><ul class=share><li><a href="//twitter.com/share?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_plugin%2f&amp;text=How%20to%20create%20a%20Neovim%20plugin&amp;via=" target=_blank title="Share on Twitter"><i class="fab fa-twitter"></i></a></li><li><a href="//www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_plugin%2f" target=_blank title="Share on Facebook"><i class="fab fa-facebook"></i></a></li><li><a href="//reddit.com/submit?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_plugin%2f&amp;title=How%20to%20create%20a%20Neovim%20plugin" target=_blank title="Share on Reddit"><i class="fab fa-reddit"></i></a></li><li><a href="//www.linkedin.com/shareArticle?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_plugin%2f&amp;title=How%20to%20create%20a%20Neovim%20plugin" target=_blank title="Share on LinkedIn"><i class="fab fa-linkedin"></i></a></li><li><a href="//www.stumbleupon.com/submit?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_plugin%2f&amp;title=How%20to%20create%20a%20Neovim%20plugin" target=_blank title="Share on StumbleUpon"><i class="fab fa-stumbleupon"></i></a></li><li><a href="//www.pinterest.com/pin/create/button/?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_plugin%2f&amp;description=How%20to%20create%20a%20Neovim%20plugin" target=_blank title="Share on Pinterest"><i class="fab fa-pinterest"></i></a></li></ul></div></div></section></article><ul class="pager blog-pager"></ul></div></div></div><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href=https://github.com/diegoortizmatajira title=GitHub><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-github fa-stack-1x fa-inverse"></i></span></a></li><li><a href=https://linkedin.com/in/diegoortizmatajira title=LinkedIn><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-linkedin fa-stack-1x fa-inverse"></i></span></a></li></ul><p class="credits copyright text-muted"><a href=yourwebsite.com>Diego Ortiz</a>
+&nbsp;&bull;&nbsp;&copy;
+2025
+&nbsp;&bull;&nbsp;
+<a href=https://diego-ortiz.me/>Diego Ortiz</a></p><p class="credits theme-by text-muted"><a href=https://gohugo.io>Hugo v0.150.0</a> powered &nbsp;&bull;&nbsp; Theme <a href=https://github.com/halogenica/beautifulhugo>Beautiful Hugo</a> adapted from <a href=https://deanattali.com/beautiful-jekyll/>Beautiful Jekyll</a></p></div></div></div></footer><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload=renderMathInElement(document.body)></script><script src=https://code.jquery.com/jquery-3.7.0.slim.min.js integrity=sha384-w5y/xIeYixWvfM+A1cEbmHPURnvyqmVg5eVENruEdDjcyRLUSNej7512JQGspFUr crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js integrity=sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd crossorigin=anonymous></script><script src=https://diego-ortiz.me/js/main.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js integrity=sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js integrity=sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q crossorigin=anonymous></script><script src=https://diego-ortiz.me/js/load-photoswipe.js></script></body></html>
