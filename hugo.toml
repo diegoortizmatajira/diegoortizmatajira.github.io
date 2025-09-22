@@ -3,8 +3,6 @@ languageCode = "en-us"
 defaultContentLanguage = "en"
 title = "Diego Ortiz"
 
-# theme = 'jimtheme'
-theme = "hugo-geekblog"
 [[module.imports]]
 path = "github.com/halogenica/beautifulhugo"
 
@@ -27,7 +25,6 @@ lineNos = true
   comments = true
   readingTime = true
   wordCount = true
-  useHLJS = true
   socialShare = true
   delayDisqus = true
   showRelatedPosts = true
