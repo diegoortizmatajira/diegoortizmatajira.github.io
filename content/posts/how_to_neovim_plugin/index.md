@@ -693,6 +693,9 @@ You will need to add proper documentation to your plugin repository.
 
 ## Results
 
+You can see an install the final and maintained version of the plugin at:
+[diegoortizmatajira/workspace-scratch-files.nvim](https://github.com/diegoortizmatajira/workspace-scratch-files.nvim)
+
 ### Using a clean install
 
 Creating a new scratch file
