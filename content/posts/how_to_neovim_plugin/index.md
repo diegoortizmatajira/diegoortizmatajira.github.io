@@ -24,8 +24,8 @@ add customizable config and finally expose new commands for users.
   - [Step 4. Testing your new plugin](#step-4-testing-your-new-plugin)
     - [Testing in a clean setup](#testing-in-a-clean-setup)
     - [Adding your plugin to your existing setup](#adding-your-plugin-to-your-existing-setup)
-    - [Packer](#packer)
-    - [Lazy.nvim](#lazynvim)
+      - [Packer](#packer)
+      - [Lazy.nvim](#lazynvim)
   - [Step 5. Adding config settings](#step-5-adding-config-settings)
   - [Step 6. Defining Functionality](#step-6-defining-functionality)
   - [Step 7. Exposing Commands](#step-7-exposing-commands)
@@ -33,9 +33,10 @@ add customizable config and finally expose new commands for users.
     - [Enhanced configuration](#enhanced-configuration)
     - [Shared Core functionality](#shared-core-functionality)
     - [Core functionality](#core-functionality)
+  - [Finally add documentation for your plugin](#finally-add-documentation-for-your-plugin)
 - [Results](#results)
   - [Using a clean install](#using-a-clean-install)
-  - [Including in your Neovim setup](#including-in-your-neovim-setup)
+  - [Including it in your Neovim setup](#including-it-in-your-neovim-setup)
 - [Conclusion](#conclusion)
 
 <!-- tocstop -->
@@ -59,7 +60,7 @@ Please follow those steps using your tools of preference.
 First step to create a plugin for people to include it in their Neovim setups
 is to create a public repository.
 
-- You can create it in github.com
+- You can create it on github.com
 - You must select the name for the plugin, when written in lua for neovim you
   can add ".nvim" to make it explicit.
 - Add a description for your repository.
@@ -188,9 +189,9 @@ And you will see this (note the message at the bottom):
 
 If you want to add your plugin, you will need to add your repository path into
 your plugin manager as a new plugin, those instructions will depend on your
-plugin manager:
+plugin manager, here are the examples in Packer and Lazy.nvim:
 
-#### Packer
+##### Packer
 
 ```lua
 use {
@@ -201,7 +202,7 @@ use {
 }
 ```
 
-#### Lazy.nvim
+##### Lazy.nvim
 
 ```lua
 {
@@ -684,6 +685,10 @@ You can see the code in the repository at this stage in github at the
 tag
 {{< /alert >}}
 
+### Finally add documentation for your plugin
+
+You will need to add proper documentation to your plugin repository.
+
 ---
 
 ## Results
@@ -700,7 +705,7 @@ Selection of existing scratch files:
 
 ![Selection of existing scratch file](assets/2025-09-22-15-20-55.png)
 
-### Including in your Neovim setup
+### Including it in your Neovim setup
 
 Including it into your existing setup with plugins such as Telescope.
 
