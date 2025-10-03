@@ -1,0 +1,524 @@
+<!doctype html><html lang=en itemscope itemtype=http://schema.org/WebPage><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><title>How to get selected text with Neovim and Lua -</title><meta name=description content="This short article showcases some forms for retrieving the visual selected text or
+treesitter node at cursor in Neovim using Lua and Neovim API."><meta name=author content="Diego Ortiz"><script type=application/ld+json>{"@context":"http://schema.org","@type":"WebSite","name":"Diego Ortiz","url":"https:\/\/diego-ortiz.me\/"}</script><script type=application/ld+json>{"@context":"http://schema.org","@type":"Organization","name":"","url":"https:\/\/diego-ortiz.me\/"}</script><script type=application/ld+json>{"@context":"http://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"item":{"@id":"https:\/\/diego-ortiz.me\/","name":"home"}},{"@type":"ListItem","position":3,"item":{"@id":"https:\/\/diego-ortiz.me\/posts\/how_to_neovim_selection\/","name":"How to get selected text with neovim and lua"}}]}</script><script type=application/ld+json>{"@context":"http://schema.org","@type":"Article","author":{"name":"Diego Ortiz"},"headline":"How to get selected text with Neovim and Lua","description":"This short article showcases some forms for retrieving the visual selected text or treesitter node at cursor in Neovim using Lua and Neovim API.\n","inLanguage":"en","wordCount":1814,"datePublished":"2025-10-03T10:42:00-04:00","dateModified":"2025-10-03T10:42:00-04:00","image":"https:\/\/diego-ortiz.me\/img\/avatar-icon.png","keywords":["Neovim"],"mainEntityOfPage":"https:\/\/diego-ortiz.me\/posts\/how_to_neovim_selection\/","publisher":{"@type":"Organization","name":"https:\/\/diego-ortiz.me\/","logo":{"@type":"ImageObject","url":"https:\/\/diego-ortiz.me\/img\/avatar-icon.png","height":60,"width":60}}}</script><meta property="og:title" content="How to get selected text with Neovim and Lua"><meta property="og:description" content="This short article showcases some forms for retrieving the visual selected text or
+treesitter node at cursor in Neovim using Lua and Neovim API."><meta property="og:image" content="https://diego-ortiz.me/img/avatar-icon.png"><meta property="og:url" content="https://diego-ortiz.me/posts/how_to_neovim_selection/"><meta property="og:type" content="website"><meta property="og:site_name" content="Diego Ortiz"><meta name=twitter:title content="How to get selected text with Neovim and Lua"><meta name=twitter:description content="This short article showcases some forms for retrieving the visual selected text or
+treesitter node at cursor in Neovim using Lua and Neovim API."><meta name=twitter:image content="https://diego-ortiz.me/img/avatar-icon.png"><meta name=twitter:card content="summary_large_image"><link href=https://diego-ortiz.me/img/favicon.ico rel=icon type=image/x-icon><meta name=generator content="Hugo 0.151.0"><link rel=alternate href=https://diego-ortiz.me/index.xml type=application/rss+xml title="Diego Ortiz"><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css integrity=sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI crossorigin=anonymous><link rel=stylesheet href=https://use.fontawesome.com/releases/v6.6.0/css/all.css integrity=sha384-h/hnnw1Bi4nbpD6kE7nYfCXzovi622sY5WBxww8ARKwpdLj5kUWjRuyiXaD1U2JT crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css integrity=sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu crossorigin=anonymous><link rel=stylesheet href=https://diego-ortiz.me/css/main.css><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800"><link rel=stylesheet href=https://diego-ortiz.me/css/syntax.css><link rel=stylesheet href=https://diego-ortiz.me/css/codeblock.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css integrity=sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh crossorigin=anonymous><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css integrity=sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R crossorigin=anonymous><script async src="https://www.googletagmanager.com/gtag/js?id=G-C9ZPJ1HFD4"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-C9ZPJ1HFD4")}</script></head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class=container-fluid><div class=navbar-header><button type=button class=navbar-toggle data-toggle=collapse data-target=#main-navbar>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+</button>
+<a class=navbar-brand href=https://diego-ortiz.me/>Diego Ortiz</a></div><div class="collapse navbar-collapse" id=main-navbar><ul class="nav navbar-nav navbar-right"><li><a title=Blog href=/>Blog</a></li><li><a title=About href=/page/about/>About</a></li><li><a title=Tags href=/tags>Tags</a></li></ul></div><div class=avatar-container><div class=avatar-img-border><a title="Diego Ortiz" href=https://diego-ortiz.me/><img class=avatar-img src=https://diego-ortiz.me/img/avatar-icon.png alt="Diego Ortiz"></a></div></div></div></nav><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><header class=header-section><div class="intro-header no-img"><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=posts-heading><h1>How to get selected text with Neovim and Lua</h1><hr class=small></div></div></div></div></div></header><div class=container role=main><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role=main class=blog-post><p>This short article showcases some forms for retrieving the visual selected text or
+treesitter node at cursor in Neovim using Lua and Neovim API.</p><h2 id=table-of-content>Table of content</h2><ul><li><a href=#simple-approach>Simple approach</a></li><li><a href=#looking-for-current-treesitter-node-text>Looking for current Treesitter node text</a></li></ul><h2 id=simple-approach>Simple approach</h2><p>The following snipped will allow you to get the visual selection from a given
+buffer (by providing the bufnr, or nil for current one).</p><p>It also takes into account if the current selection mode is <code>v</code> or <code>V</code> for full
+lines selection.</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- Retrieves the visually selected text in the current buffer.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- This function identifies the range of visually selected lines in the current</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- buffer and extracts the selected text. It adjusts the text boundaries to</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- ensure only the selected portion is included, considering both the start</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- and end columns of the selection.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- The function is useful for scenarios where a specific portion of the text</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- needs to be processed, such as running a database query on a selected range</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- of lines.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return string The text within the visually selected range, or an empty</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- string if no text is selected.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>get_visual_selection</span>(bufnr)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> mode <span style=color:#f92672>=</span> vim.api.nvim_get_mode().mode
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> mode <span style=color:#f92672>~=</span> <span style=color:#e6db74>&#34;v&#34;</span> <span style=color:#f92672>and</span> mode <span style=color:#f92672>~=</span> <span style=color:#e6db74>&#34;V&#34;</span> <span style=color:#f92672>and</span> mode <span style=color:#f92672>~=</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\22</span><span style=color:#e6db74>&#34;</span> <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;&#34;</span> <span style=color:#75715e>-- Not in visual mode</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    bufnr <span style=color:#f92672>=</span> bufnr <span style=color:#f92672>or</span> vim.api.nvim_get_current_buf()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> start <span style=color:#f92672>=</span> vim.fn.getpos(<span style=color:#e6db74>&#34;v&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> end_ <span style=color:#f92672>=</span> vim.fn.getpos(<span style=color:#e6db74>&#34;.&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> start_row <span style=color:#f92672>=</span> start[<span style=color:#ae81ff>2</span>] <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> start_col <span style=color:#f92672>=</span> start[<span style=color:#ae81ff>3</span>] <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> end_row <span style=color:#f92672>=</span> end_[<span style=color:#ae81ff>2</span>] <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> end_col <span style=color:#f92672>=</span> end_[<span style=color:#ae81ff>3</span>] <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- A user can start visual selection at the end and move backwards</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Normalize the range to start &lt; end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> start_row <span style=color:#f92672>==</span> end_row <span style=color:#f92672>and</span> end_col <span style=color:#f92672>&lt;</span> start_col <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        end_col, start_col <span style=color:#f92672>=</span> start_col, end_col
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>elseif</span> end_row <span style=color:#f92672>&lt;</span> start_row <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        start_row, end_row <span style=color:#f92672>=</span> end_row, start_row
+</span></span><span style=display:flex><span>        start_col, end_col <span style=color:#f92672>=</span> end_col, start_col
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> mode <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;V&#34;</span> <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        start_col <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> lines <span style=color:#f92672>=</span> vim.api.nvim_buf_get_lines(bufnr, end_row, end_row <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>, <span style=color:#66d9ef>true</span>)
+</span></span><span style=display:flex><span>        end_col <span style=color:#f92672>=</span> <span style=color:#f92672>#</span>lines[<span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> lines <span style=color:#f92672>=</span> vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row,
+</span></span><span style=display:flex><span>        end_col <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>, {})
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> table.concat(lines, <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=looking-for-current-treesitter-node-text>Looking for current Treesitter node text</h2><p>For some specific scenarios you may not only want to get the visually selected
+text, but a entire block of text representing a specific code element (such as
+a full SQL statement).</p><p>Using neovim API you can get the Treesitter node where your cursor is. But, if
+you want to find a larger Treesitter node containing your current cursor, the
+following set of functions may help you.</p><div class="alert alert-info" role=alert>For this code to work, you will need to have the <code>nvim-treesitter</code> plugin in
+your setup (<a href=https://github.com/nvim-treesitter/nvim-treesitter>nvim-treesitter plugin page</a>).</div><p>You can create a new lua module file with the following content.</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">105
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">106
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">107
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">108
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">109
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">110
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">111
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">112
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">113
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">114
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">115
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">116
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">117
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">118
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">119
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">120
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">121
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">122
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">123
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">124
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">125
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">126
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">127
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">128
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">129
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">130
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> L <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Finds the index of a value in an array.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- This function iterates over the provided array and checks if the specified value</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- is present. If found, it returns the index of the value. If the value is not found,</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- the function returns `nil`.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param array table The array to search through.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param value any The value to find in the array.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return number|nil The index of the value if found, or `nil` otherwise.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>index_of</span>(array, value)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i, v <span style=color:#66d9ef>in</span> ipairs(array) <span style=color:#66d9ef>do</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> v <span style=color:#f92672>==</span> value <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> i
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span> <span style=color:#75715e>-- si no se encuentra el valor</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Retrieves matches from a parsed Treesitter query based on the specified parameters.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param query_string string The Treesitter query string to be parsed.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param lang string The language of the current buffer.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param filter_func? fun(match: TSNode[], captures: string[]):boolean A</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- function to filter matches. Receives the match and captures as arguments.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param map_func? fun(match: TSNode[], captures: string[]):any A function to</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- transform the captured node. Receives the match and captures as arguments.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param max_results number|nil The maximum number of results to return.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return table A list of captured nodes that match the query, filtered and</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- transformed as specified.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>L</span>.<span style=color:#a6e22e>get_matches</span>(query_string, lang, filter_func, map_func, max_results)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> ts_utils <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;nvim-treesitter.ts_utils&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> ts_query <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#34;vim.treesitter.query&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> bufnr <span style=color:#f92672>=</span> vim.api.nvim_get_current_buf()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Parse the query</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> query <span style=color:#f92672>=</span> ts_query.parse(lang, query_string)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Get the root syntax tree node</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> root <span style=color:#f92672>=</span> ts_utils.get_root_for_position(unpack(vim.api.nvim_win_get_cursor(<span style=color:#ae81ff>0</span>)))
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> root <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> {}
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> results <span style=color:#f92672>=</span> {}
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>-- Iterate over matches</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> _, match, _ <span style=color:#66d9ef>in</span> query:iter_matches(root, bufnr, <span style=color:#ae81ff>0</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>do</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> filter_func <span style=color:#f92672>or</span> filter_func(match, query.captures) <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>local</span> mapped_result <span style=color:#f92672>=</span> map_func <span style=color:#f92672>and</span> map_func(match, query.captures)
+</span></span><span style=display:flex><span>                <span style=color:#f92672>or</span> match
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> mapped_result <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>                table.insert(results, mapped_result)
+</span></span><span style=display:flex><span>                count <span style=color:#f92672>=</span> count <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> max_results <span style=color:#f92672>and</span> count <span style=color:#f92672>&gt;=</span> max_results <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> results
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Gets the text of all captures that match the query</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param query_string string The treesitter query string</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param lang string The language of the current buffer</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param node_capture_name string The name of the capture that contains the</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- node to check</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param text_capture_name string|nil The name of the capture that contains</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- the text to return (if different from node_capture_name)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param filter_func? fun(match: TSNode[], captures: string[]):boolean A</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- function to filter matches. Receives the match and captures as arguments.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param max_results number|nil The maximum number of results to return.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return string[] A list of texts of the captures that match the query</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>L</span>.<span style=color:#a6e22e>get_match_texts</span>(query_string, lang, node_capture_name,
+</span></span><span style=display:flex><span>    text_capture_name, filter_func, max_results)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> text_capture_name <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        text_capture_name <span style=color:#f92672>=</span> node_capture_name
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> L.get_matches(query_string, lang, filter_func, <span style=color:#66d9ef>function</span>(match, captures)
+</span></span><span style=display:flex><span>        <span style=color:#75715e>-- Return the text of the text capture</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> text_capture_index <span style=color:#f92672>=</span> index_of(captures, text_capture_name)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> text_capture_index <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> captured_node <span style=color:#f92672>=</span> match[text_capture_index][<span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>local</span> bufnr <span style=color:#f92672>=</span> vim.api.nvim_get_current_buf()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> vim.treesitter.get_node_text(captured_node, bufnr)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>, max_results)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Gets the text of the capture at the cursor position</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param query_string string The treesitter query string</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param lang string The language of the current buffer</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param node_capture_name string The name of the capture that contains the</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- node to check</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @param text_capture_name string|nil The name of the capture that contains</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- the text to return (if different from node_capture_name)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return string The text of the capture at the cursor position, or an empty</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- string if not found</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>L</span>.<span style=color:#a6e22e>get_match_text_at_cursor</span>(query_string, lang, node_capture_name, text_capture_name)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> node_at_cursor <span style=color:#f92672>=</span> vim.treesitter.get_node()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> node_at_cursor <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> matches <span style=color:#f92672>=</span> L.get_match_texts(
+</span></span><span style=display:flex><span>        query_string,
+</span></span><span style=display:flex><span>        lang,
+</span></span><span style=display:flex><span>        node_capture_name,
+</span></span><span style=display:flex><span>        text_capture_name,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>function</span>(match, captures)
+</span></span><span style=display:flex><span>            <span style=color:#75715e>-- Check if the node at cursor is within the captured node</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>local</span> capture_index <span style=color:#f92672>=</span> index_of(captures, node_capture_name)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> capture_index <span style=color:#66d9ef>then</span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>local</span> captured_node <span style=color:#f92672>=</span> match[capture_index][<span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> captured_node <span style=color:#f92672>==</span> node_at_cursor
+</span></span><span style=display:flex><span>                <span style=color:#f92672>or</span> vim.treesitter.is_ancestor(captured_node, node_at_cursor)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>end</span>,
+</span></span><span style=display:flex><span>        <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> matches <span style=color:#f92672>and</span> matches[<span style=color:#ae81ff>1</span>] <span style=color:#f92672>or</span> <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> L
+</span></span></code></pre></td></tr></table></div></div><p>Now you can use those functions with a Treesitter query and get the text you want.</p><p>Let&rsquo;s use a <code>docker-compose.yaml</code> file as example:</p><ul><li>It is a <code>YAML</code> file.</li><li>There is a <code>yaml</code> treesitter parser.</li><li>You want to obtain the list of service names.</li><li>You want to obtain the service name where your cursor is located (you are in
+any position inside the service definition)</li></ul><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-lua data-lang=lua><span style=display:flex><span><span style=color:#75715e>--- replace with the module you just build in the previous step</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> ts <span style=color:#f92672>=</span> require(<span style=color:#e6db74>&#39;your_module_file&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Defines the query to retrieve locate the &#39;services&#39; key and all their</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- defined children.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- &#39;services-key&#39;: Used to locate the &#39;services&#39; parent.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- &#39;service-node&#39;: Used to identify the whole block of service definition,</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---                 where your cursor may be.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- &#39;service-name&#39;: Used to obtain only the name for a given service.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> ts_compose_services_query <span style=color:#f92672>=</span> <span style=color:#e6db74>[[
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>(block_mapping_pair
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  key: ((flow_node) @services-key (#eq? @services-key &#34;services&#34;))
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  value: (block_node
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    (block_mapping (block_mapping_pair
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      key: (flow_node) @service-name
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    ) @service-node)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  )
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>)]]</span>,
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Retrieves a list of services defined in a Docker Compose YAML file.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- This function uses Tree-sitter to parse the YAML structure and extract</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- the names of all the services defined under the &#34;services&#34; key in a</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Docker Compose file. It returns a table containing the service names.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return table: A table of strings, where each string represents a service name.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @usage</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- local services = docker_compose_get_services()</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- for _, service in ipairs(services) do</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---     print(service)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- end</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>docker_compose_get_services</span>()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> services <span style=color:#f92672>=</span> ts.get_match_texts(L.ts_compose_services_query, <span style=color:#e6db74>&#34;yaml&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;service-node&#34;</span>, <span style=color:#e6db74>&#34;service-name&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> services
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- Retrieves the Docker Compose service name at the current cursor position.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- This function uses Tree-sitter to identify and extract the service name</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- under the cursor within a Docker Compose YAML file. If no service name</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- is found at the cursor, an empty string is returned.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @return string: The name of the service at the cursor, or an empty string if</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- no service is found.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- @usage</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- local service = docker_compose_get_service_at_cursor()</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- if service ~= &#34;&#34; then</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---     print(&#34;Service at cursor: &#34; .. service)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- else</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>---     print(&#34;No service found at cursor.&#34;)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>--- end</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>local</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>docker_compose_get_service_at_cursor</span>()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>local</span> service <span style=color:#f92672>=</span> ts.get_match_text_at_cursor(L.ts_compose_services_query,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;yaml&#34;</span>, <span style=color:#e6db74>&#34;service-node&#34;</span>, <span style=color:#e6db74>&#34;service-name&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> service
+</span></span><span style=display:flex><span><span style=color:#66d9ef>end</span>
+</span></span></code></pre></td></tr></table></div></div><p>If you have the following docker compose file:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>services</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>backend</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>build</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>context</span>: <span style=color:#ae81ff>backend</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>target</span>: <span style=color:#ae81ff>builder</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>...</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>db</span>:
+</span></span><span style=display:flex><span>    <span style=color:#75715e># We use a mariadb image which supports both amd64 &amp; arm64 architecture</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>mariadb:10-focal</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># If you really want to use MySQL, uncomment the following line</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#image: mysql:8</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>...</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>proxy</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>build</span>: <span style=color:#ae81ff>proxy</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>...</span>
+</span></span></code></pre></td></tr></table></div></div><p>Those functions will return:</p><table><thead><tr><th>Function</th><th>Result</th><th>Condition</th></tr></thead><tbody><tr><td>docker_compose_get_services</td><td>List: &lsquo;backend&rsquo;, &lsquo;db&rsquo;, &lsquo;proxy&rsquo;</td><td>Always</td></tr><tr><td>docker_compose_get_service_at_cursor</td><td>Single: &lsquo;backend&rsquo;</td><td>If your cursor is anywhere inside the &lsquo;backend&rsquo; service definition</td></tr><tr><td>docker_compose_get_service_at_cursor</td><td>Single: nil</td><td>If your cursor is anywhere outside a service definition</td></tr></tbody></table><p>Hope this will help you with your Neovim skills to build productivity tools.</p><div class=blog-tags><a href=https://diego-ortiz.me/tags/neovim/>Neovim</a>&nbsp;</div><hr><section id=social-share><div class="list-inline footer-links"><div class=share-box aria-hidden=true><ul class=share><li><a href="//twitter.com/share?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_selection%2f&amp;text=How%20to%20get%20selected%20text%20with%20Neovim%20and%20Lua&amp;via=" target=_blank title="Share on Twitter"><i class="fab fa-twitter"></i></a></li><li><a href="//www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_selection%2f" target=_blank title="Share on Facebook"><i class="fab fa-facebook"></i></a></li><li><a href="//reddit.com/submit?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_selection%2f&amp;title=How%20to%20get%20selected%20text%20with%20Neovim%20and%20Lua" target=_blank title="Share on Reddit"><i class="fab fa-reddit"></i></a></li><li><a href="//www.linkedin.com/shareArticle?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_selection%2f&amp;title=How%20to%20get%20selected%20text%20with%20Neovim%20and%20Lua" target=_blank title="Share on LinkedIn"><i class="fab fa-linkedin"></i></a></li><li><a href="//www.stumbleupon.com/submit?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_selection%2f&amp;title=How%20to%20get%20selected%20text%20with%20Neovim%20and%20Lua" target=_blank title="Share on StumbleUpon"><i class="fab fa-stumbleupon"></i></a></li><li><a href="//www.pinterest.com/pin/create/button/?url=https%3a%2f%2fdiego-ortiz.me%2fposts%2fhow_to_neovim_selection%2f&amp;description=How%20to%20get%20selected%20text%20with%20Neovim%20and%20Lua" target=_blank title="Share on Pinterest"><i class="fab fa-pinterest"></i></a></li></ul></div></div></section><h4 class=see-also>See also</h4><ul><li><a href=/posts/how_to_neovim_plugin/>How to create a Neovim plugin</a></li></ul></article><ul class="pager blog-pager"><li class=previous><a href=https://diego-ortiz.me/posts/how_to_neovim_plugin/ data-toggle=tooltip data-placement=top title="How to create a Neovim plugin">&larr; Previous Post</a></li></ul></div></div></div><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href=https://github.com/diegoortizmatajira title=GitHub><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-github fa-stack-1x fa-inverse"></i></span></a></li><li><a href=https://linkedin.com/in/diegoortizmatajira title=LinkedIn><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-linkedin fa-stack-1x fa-inverse"></i></span></a></li></ul><p class="credits copyright text-muted"><a href=yourwebsite.com>Diego Ortiz</a>
+&nbsp;&bull;&nbsp;&copy;
+2025
+&nbsp;&bull;&nbsp;
+<a href=https://diego-ortiz.me/>Diego Ortiz</a></p><p class="credits theme-by text-muted"><a href=https://gohugo.io>Hugo v0.151.0</a> powered &nbsp;&bull;&nbsp; Theme <a href=https://github.com/halogenica/beautifulhugo>Beautiful Hugo</a> adapted from <a href=https://deanattali.com/beautiful-jekyll/>Beautiful Jekyll</a></p></div></div></div></footer><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js integrity=sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload=renderMathInElement(document.body)></script><script src=https://code.jquery.com/jquery-3.7.0.slim.min.js integrity=sha384-w5y/xIeYixWvfM+A1cEbmHPURnvyqmVg5eVENruEdDjcyRLUSNej7512JQGspFUr crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js integrity=sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd crossorigin=anonymous></script><script src=https://diego-ortiz.me/js/main.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js integrity=sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js integrity=sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q crossorigin=anonymous></script><script src=https://diego-ortiz.me/js/load-photoswipe.js></script></body></html>
