@@ -234,6 +234,8 @@ Let's use a `docker-compose.yaml` file as example:
 - You want to obtain the list of service names.
 - You want to obtain the service name where your cursor is located (you are in
   any position inside the service definition)
+- You want to obtain the full service definition body where your cursor is
+  located (you are in any position inside the service definition)
 
 ```lua
 --- replace with the module you just build in the previous step
