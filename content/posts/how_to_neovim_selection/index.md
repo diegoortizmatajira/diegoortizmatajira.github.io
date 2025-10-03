@@ -296,6 +296,26 @@ local function docker_compose_get_service_at_cursor()
     return service
 end
 
+--- Retrieves the Docker Compose service body at the current cursor position.
+---
+--- This function uses Tree-sitter to identify and extract the service body
+--- under the cursor within a Docker Compose YAML file. If no service
+--- is found at the cursor, an empty string is returned.
+---
+--- @return string: The name of the service at the cursor, or an empty string if
+--- no service is found.
+--- @usage
+--- local service = docker_compose_get_service_at_cursor()
+--- if service ~= "" then
+---     print("Service at cursor: " .. service)
+--- else
+---     print("No service found at cursor.")
+--- end
+local function docker_compose_get_service_body_at_cursor()
+    local service = ts.get_match_text_at_cursor(L.ts_compose_services_query,
+        "yaml", "service-node", "service-node")
+    return service
+end
 
 ```
 
@@ -321,10 +341,11 @@ services:
 
 Those functions will return:
 
-| Function                             | Result                         | Condition                                                          |
-| ------------------------------------ | ------------------------------ | ------------------------------------------------------------------ |
-| docker_compose_get_services          | List: 'backend', 'db', 'proxy' | Always                                                             |
-| docker_compose_get_service_at_cursor | Single: 'backend'              | If your cursor is anywhere inside the 'backend' service definition |
-| docker_compose_get_service_at_cursor | Single: nil                    | If your cursor is anywhere outside a service definition            |
+| Function                                  | Result                         | Condition                                                          |
+| ----------------------------------------- | ------------------------------ | ------------------------------------------------------------------ |
+| docker_compose_get_services               | List: `backend`, `db`, `proxy` | Always                                                             |
+| docker_compose_get_service_at_cursor      | Single: `backend`              | If your cursor is anywhere inside the 'backend' service definition |
+| docker_compose_get_service_at_cursor      | Single: ``                     | If your cursor is anywhere outside a service definition            |
+| docker_compose_get_service_body_at_cursor | Single: full service body      | If your cursor is anywhere inside the 'backend' service definition |
 
 Hope this will help you with your Neovim skills to build productivity tools.
